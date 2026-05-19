@@ -1,5 +1,5 @@
 import Header from '@/components/Header'
-import Hero from '@/components/Hero'
+import HeroCarousel from '@/components/HeroCarousel'
 import Services from '@/components/Services'
 import CTABanner from '@/components/CTABanner'
 import Gallery from '@/components/Gallery'
@@ -13,7 +13,7 @@ export default function Home() {
       <Header />
       <FloatingWhatsApp />
       <main>
-        <Hero />
+        <HeroCarousel />
         <Services />
         <CTABanner />
         <Gallery />
