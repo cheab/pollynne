@@ -89,3 +89,4 @@ Atualize o número do WhatsApp em todos os componentes
 ## 📄 Licença
 
 © 2024 Pollynne Leite Beauty. Todos os direitos reservados.
+# pollynne
