@@ -2,20 +2,22 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 
 const images = [
-  "/hero/hero1.png",
-  "/hero/hero2.png",
-  "/hero/hero3.png",
-  "/hero/hero4.png",
+  "/hero/hero1.jpg",
+  "/hero/hero2.jpg",
+  "/hero/hero3.jpg",
+  "/hero/hero4.jpg",
+  "/hero/hero5.jpg",
+  "/hero/hero6.jpg",
+  "/hero/hero7.jpg",
 ];
 
 const variants = {
   enter: (direction: number) => {
     return {
-      x: direction > 0 ? "5%" : "-5%",
+      x: direction > 0 ? 50 : -50,
       opacity: 0,
       scale: 1.05,
     };
@@ -29,9 +31,9 @@ const variants = {
   exit: (direction: number) => {
     return {
       zIndex: 0,
-      x: direction < 0 ? "5%" : "-5%",
+      x: 0,
       opacity: 0,
-      scale: 0.95,
+      scale: 1,
     };
   },
 };
@@ -65,9 +67,9 @@ export default function HeroCarousel() {
           animate="center"
           exit="exit"
           transition={{
-            x: { type: "spring", stiffness: 300, damping: 30 },
-            opacity: { duration: 1.2, ease: "easeInOut" },
-            scale: { duration: 1.2, ease: "easeInOut" },
+            x: { duration: 1.8, ease: [0.25, 0.1, 0.25, 1] },
+            opacity: { duration: 1.8, ease: "easeInOut" },
+            scale: { duration: 1.8, ease: "easeInOut" },
           }}
           className="absolute inset-0 w-full h-full"
         >
@@ -75,7 +77,7 @@ export default function HeroCarousel() {
             src={images[imageIndex]}
             alt="Pollynne Beauty Hero"
             fill
-            className="object-cover"
+            className="object-cover object-[center_15%] md:object-[center_20%]"
             priority
           />
           {/* Overlay gradient for readability */}
@@ -83,55 +85,23 @@ export default function HeroCarousel() {
         </motion.div>
       </AnimatePresence>
 
-      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none text-white text-center px-4">
+      <div className="absolute top-[15%] left-[50%] md:top-[25%] md:left-[25%] -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center justify-center pointer-events-none text-white text-center w-[90vw] md:w-max px-4">
         <motion.h1
           initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
+          animate={{ y: 0, opacity: 0.3 }}
           transition={{ delay: 0.5, duration: 0.8 }}
-          className="text-5xl md:text-7xl font-light tracking-widest mb-4"
+          className="text-6xl md:text-8xl font-display font-semibold mb-4 drop-shadow-lg opacity-30"
         >
-          POLLYNNE
+          Pollynne
         </motion.h1>
         <motion.p
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.7, duration: 0.8 }}
-          className="text-lg md:text-2xl font-light tracking-wider"
+          className="text-xl md:text-3xl font-body font-light tracking-wide drop-shadow-md"
         >
-          ELEVATING BEAUTY TO ART
+          Seja seu próprio padrão de beleza
         </motion.p>
-      </div>
-
-      {/* Navigation Buttons */}
-      <button
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white/10 hover:bg-white/30 backdrop-blur-sm transition-colors text-white"
-        onClick={() => paginate(-1)}
-      >
-        <ChevronLeft size={32} strokeWidth={1.5} />
-      </button>
-      <button
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white/10 hover:bg-white/30 backdrop-blur-sm transition-colors text-white"
-        onClick={() => paginate(1)}
-      >
-        <ChevronRight size={32} strokeWidth={1.5} />
-      </button>
-
-      {/* Indicators */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex space-x-2">
-        {images.map((_, idx) => (
-          <button
-            key={idx}
-            onClick={() => {
-              const dir = idx > imageIndex ? 1 : -1;
-              if (idx !== imageIndex) {
-                setPage([page + (idx - imageIndex), dir]);
-              }
-            }}
-            className={`w-12 h-1 transition-all duration-300 ${
-              idx === imageIndex ? "bg-white" : "bg-white/40 hover:bg-white/70"
-            }`}
-          />
-        ))}
       </div>
     </div>
   );
