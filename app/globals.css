@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+}
+
+.hero-gradient {
+  background: linear-gradient(135deg, rgba(212, 197, 185, 0.1) 0%, rgba(212, 197, 185, 0.05) 100%);
+}
+
+.service-card {
+  @apply bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow duration-300;
+}
+
+.btn-primary {
+  @apply bg-dark text-white px-6 py-3 rounded-lg font-medium hover:bg-gray transition-colors duration-300;
+}
+
+.btn-secondary {
+  @apply bg-white text-dark px-6 py-3 rounded-lg font-medium border-2 border-dark hover:bg-beige transition-colors duration-300;
+}
+
+@media (max-width: 640px) {
+  body {
+    font-size: 14px;
+  }
+  
+  h1 {
+    font-size: 28px;
+  }
+  
+  h2 {
+    font-size: 22px;
+  }
+}
