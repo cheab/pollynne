@@ -8,9 +8,9 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-3 gap-8 md:gap-12 mb-12">
           {/* Sobre */}
-          <div>
+          <div className="flex flex-col items-center md:items-start text-center md:text-left">
             <LogoTipo light={true} className="mb-4" />
-            <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+            <p className="text-gray-400 text-sm mb-6 leading-relaxed max-w-sm">
               Especialistas em beleza natural, buscando sempre a melhor versão do seu olhar.
             </p>
             <div className="flex gap-6">
@@ -24,9 +24,9 @@ export default function Footer() {
           </div>
 
           {/* Serviços Rápidos */}
-          <div>
+          <div className="flex flex-col items-center md:items-start text-center md:text-left">
             <h4 className="font-display font-bold text-lg mb-4">Serviços</h4>
-            <ul className="space-y-2 text-gray-300">
+            <ul className="space-y-2 text-gray-300 flex flex-col items-center md:items-start">
               <li><a href="#servicos" className="hover:text-beige transition">Design de Sobrancelha</a></li>
               <li><a href="#servicos" className="hover:text-beige transition">Microblading</a></li>
               <li><a href="#servicos" className="hover:text-beige transition">Lash Lifting</a></li>
@@ -35,9 +35,9 @@ export default function Footer() {
           </div>
 
           {/* Contato */}
-          <div>
+          <div className="flex flex-col items-center md:items-start text-center md:text-left">
             <h4 className="font-display font-bold text-lg mb-4">Contate-nos</h4>
-            <div className="space-y-3 text-gray-400 text-sm">
+            <div className="space-y-3 text-gray-400 text-sm flex flex-col items-center md:items-start">
               <p>Jequitinhonha, MG</p>
               <p>(31) 99513-6154</p>
               <p>contato@pollynne.com.br</p>

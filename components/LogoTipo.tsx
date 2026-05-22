@@ -21,13 +21,13 @@ export default function LogoTipo({
   const textMainColor = light ? 'text-white' : 'text-dark'
 
   const alignClass = align === 'center'
-    ? 'self-center'
+    ? 'items-center text-center'
     : align === 'right'
-    ? 'self-end mr-4 md:mr-6'
-    : 'self-center md:self-end md:mr-6'
+    ? 'items-end text-right'
+    : 'items-center text-center md:items-end md:text-right'
 
   return (
-    <div className={`flex flex-col select-none ${className}`}>
+    <div className={`flex flex-col select-none w-fit ${alignClass} ${className}`}>
       {/* Top line: Pollynne Leite */}
       <span
         className={`${fontClass} font-semibold leading-none tracking-normal ${textMainColor} ${sizeMain}`}
@@ -36,7 +36,7 @@ export default function LogoTipo({
       </span>
       {/* Bottom line: Beauty */}
       <span
-        className={`${fontClass} font-normal leading-none tracking-normal ${textMainColor} ${sizeSub} ${alignClass} -mt-1 sm:-mt-2 pt-1`}
+        className={`${fontClass} font-normal leading-none tracking-normal ${textMainColor} ${sizeSub} -mt-1 sm:-mt-2 pt-1`}
       >
         Beauty
       </span>

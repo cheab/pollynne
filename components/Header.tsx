@@ -30,6 +30,9 @@ export default function Header() {
           <Link href="#galeria" className="hover:text-dark transition">
             Galeria
           </Link>
+          <Link href="#localizacao" className="hover:text-dark transition">
+            Localização
+          </Link>
           <Link href="#contato" className="hover:text-dark transition">
             Contato
           </Link>
@@ -47,6 +50,9 @@ export default function Header() {
               </Link>
               <Link href="#galeria" onClick={() => setIsOpen(false)}>
                 Galeria
+              </Link>
+              <Link href="#localizacao" onClick={() => setIsOpen(false)}>
+                Localização
               </Link>
               <Link href="#contato" onClick={() => setIsOpen(false)}>
                 Contato

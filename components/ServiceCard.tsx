@@ -1,3 +1,5 @@
+import React from 'react'
+
 interface ServiceCardProps {
   icon: string
   name: string
@@ -14,7 +16,7 @@ export default function ServiceCard({
   duration,
 }: ServiceCardProps) {
   return (
-    <div className="service-card group hover:border-dark/30 border border-transparent transition-all">
+    <div className="service-card group hover:border-dark/30 border border-transparent transition-all flex flex-col h-full">
       <div className="h-12 w-12 rounded-lg bg-beige mb-6 flex items-center justify-center text-2xl group-hover:bg-dark group-hover:text-beige transition-all">
         {icon}
       </div>
@@ -24,7 +26,7 @@ export default function ServiceCard({
       <p className="text-gray text-sm md:text-base mb-6 leading-relaxed flex-grow">
         {description}
       </p>
-      <div className="flex flex-col gap-3 pt-4 border-t border-beige">
+      <div className="flex justify-between items-center pt-4 border-t border-beige w-full whitespace-nowrap gap-4">
         <span className="text-sm text-gray font-medium">
           {price}
         </span>

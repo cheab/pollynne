@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import LogoTipo from "./LogoTipo";
+import { ChevronDown } from "lucide-react";
 
 const images = [
   "/hero/hero1.jpg",
@@ -86,28 +87,44 @@ export default function HeroCarousel() {
         </motion.div>
       </AnimatePresence>
 
-      <div className="absolute bottom-[10%] left-1/2 -translate-x-1/2 z-20 flex flex-col items-center justify-center pointer-events-none text-white text-center w-[90vw] px-4 md:top-[22%] md:bottom-auto md:left-auto md:right-[8%] md:translate-x-0 md:items-end md:text-right md:w-max">
+      <div className="absolute bottom-[10%] left-1/2 -translate-x-1/2 z-20 flex flex-col items-center justify-center pointer-events-none text-white text-center w-[90vw] px-4">
         <motion.div
           initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 0.95 }}
+          animate={{ y: 0, opacity: 0.5 }}
           transition={{ delay: 0.5, duration: 0.8 }}
-          className="mb-6 drop-shadow-lg"
+          className="mb-4 drop-shadow-lg"
         >
-          <LogoTipo 
-            light={true} 
-            sizeMain="text-5xl sm:text-6xl md:text-7xl" 
-            sizeSub="text-[1.5rem] sm:text-2xl md:text-3xl" 
+          <LogoTipo
+            light={true}
+            sizeMain="text-4xl sm:text-5xl md:text-6xl"
+            sizeSub="text-[1.2rem] sm:text-xl md:text-2xl"
           />
         </motion.div>
         <motion.p
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.7, duration: 0.8 }}
-          className="text-xl md:text-3xl font-body font-light tracking-wide drop-shadow-md"
+          className="text-lg md:text-2xl font-body font-light tracking-wide drop-shadow-md"
         >
           Seja seu próprio padrão de beleza
         </motion.p>
       </div>
+
+      <motion.a
+        href="#servicos"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.6 }}
+        transition={{ delay: 1.2, duration: 0.8 }}
+        whileHover={{ opacity: 1, scale: 1.05 }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center justify-center cursor-pointer text-white pointer-events-auto select-none"
+      >
+        <motion.div
+          animate={{ y: [0, 5, 0] }}
+          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+        >
+          <ChevronDown size={18} className="text-white/60" />
+        </motion.div>
+      </motion.a>
     </div>
   );
 }

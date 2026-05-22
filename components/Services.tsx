@@ -57,7 +57,7 @@ const services = [
   {
     icon: '◇',
     name: 'Hidra Lips',
-    description: 'Tratamento que melhora o aspecto dos lábios, deixando-os profundamente hidratados e saudáveis com aspecto revitalizado.',
+    description: 'Tratamento que melhora o aspect dos lábios, deixando-os profundamente hidratados e saudáveis com aspecto revitalizado.',
     price: 'R$ 150,00',
     duration: '2-3 meses',
   },

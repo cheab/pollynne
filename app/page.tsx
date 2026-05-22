@@ -3,7 +3,7 @@ import HeroCarousel from '@/components/HeroCarousel'
 import Services from '@/components/Services'
 import CTABanner from '@/components/CTABanner'
 import Gallery from '@/components/Gallery'
-import InstagramFeed from '@/components/InstagramFeed'
+import LocationMap from '@/components/LocationMap'
 import FloatingWhatsApp from '@/components/FloatingWhatsApp'
 import Footer from '@/components/Footer'
 
@@ -17,7 +17,7 @@ export default function Home() {
         <Services />
         <CTABanner />
         <Gallery />
-        <InstagramFeed />
+        <LocationMap />
       </main>
       <Footer />
     </>
