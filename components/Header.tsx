@@ -2,15 +2,16 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import LogoTipo from './LogoTipo'
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
     <header className="fixed top-0 w-full bg-white/95 backdrop-blur-sm z-50 shadow-sm">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <Link href="/" className="font-display font-bold text-2xl text-dark">
-          Pollynne
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-3 flex justify-between items-center">
+        <Link href="/" className="flex items-center">
+          <LogoTipo />
         </Link>
 
         {/* Menu Mobile */}

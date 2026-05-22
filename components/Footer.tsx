@@ -1,3 +1,5 @@
+import LogoTipo from './LogoTipo'
+
 export default function Footer() {
   const currentYear = new Date().getFullYear()
 
@@ -7,7 +9,7 @@ export default function Footer() {
         <div className="grid md:grid-cols-3 gap-8 md:gap-12 mb-12">
           {/* Sobre */}
           <div>
-            <h3 className="font-display font-bold text-2xl mb-4">Pollynne</h3>
+            <LogoTipo light={true} className="mb-4" />
             <p className="text-gray-400 text-sm mb-6 leading-relaxed">
               Especialistas em beleza natural, buscando sempre a melhor versão do seu olhar.
             </p>

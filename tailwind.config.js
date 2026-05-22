@@ -16,6 +16,8 @@ module.exports = {
       fontFamily: {
         'display': ['Poppins', 'sans-serif'],
         'body': ['Inter', 'sans-serif'],
+        'garamond': ['"EB Garamond"', 'serif'],
+        'cormorant': ['"Cormorant Garamond"', 'serif'],
       },
       spacing: {
         'safe': 'max(1rem, env(safe-area-inset-left))',

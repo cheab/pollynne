@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import LogoTipo from "./LogoTipo";
 
 const images = [
   "/hero/hero1.jpg",
@@ -85,15 +86,19 @@ export default function HeroCarousel() {
         </motion.div>
       </AnimatePresence>
 
-      <div className="absolute top-[15%] left-[50%] md:top-[25%] md:left-[25%] -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center justify-center pointer-events-none text-white text-center w-[90vw] md:w-max px-4">
-        <motion.h1
+      <div className="absolute bottom-[10%] left-1/2 -translate-x-1/2 z-20 flex flex-col items-center justify-center pointer-events-none text-white text-center w-[90vw] px-4 md:top-[22%] md:bottom-auto md:left-auto md:right-[8%] md:translate-x-0 md:items-end md:text-right md:w-max">
+        <motion.div
           initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 0.3 }}
+          animate={{ y: 0, opacity: 0.95 }}
           transition={{ delay: 0.5, duration: 0.8 }}
-          className="text-6xl md:text-8xl font-display font-semibold mb-4 drop-shadow-lg opacity-30"
+          className="mb-6 drop-shadow-lg"
         >
-          Pollynne
-        </motion.h1>
+          <LogoTipo 
+            light={true} 
+            sizeMain="text-5xl sm:text-6xl md:text-7xl" 
+            sizeSub="text-[1.5rem] sm:text-2xl md:text-3xl" 
+          />
+        </motion.div>
         <motion.p
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
