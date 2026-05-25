@@ -1,17 +1,19 @@
 import ServiceCard from './ServiceCard'
 
-const services = [
+export const services = [
   {
     icon: '○',
     name: 'Design Premium',
     description: 'Técnica utilizada para preservar o máximo de pelos seus, dando um formato e harmonia a suas sobrancelhas de forma natural.',
     price: 'R$ 30,00',
+    duration: '40 min',
   },
   {
     icon: '○',
     name: 'Epilação de Buço',
     description: 'Remova os pelos indesejados do buço de forma rápida, prática e delicada. Acabamento suave e aparência natural.',
     price: 'R$ 15,00',
+    duration: '15 min',
   },
   {
     icon: '◆',
@@ -25,6 +27,7 @@ const services = [
     name: 'Design com Tintura',
     description: 'Design personalizado que não afina sua sobrancelha, com técnica exclusiva de tintura.',
     price: 'R$ 45,00',
+    duration: '50 min',
   },
   {
     icon: '◆',
