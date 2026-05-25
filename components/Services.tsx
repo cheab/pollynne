@@ -18,12 +18,12 @@ const services = [
     name: 'Brow Lamination',
     description: 'Tratamento que alinha e fixa os fios da sobrancelha, deixando o olhar mais expressivo e harmonioso. Efeito de sobrancelha sempre penteada.',
     price: 'R$ 120,00',
-    duration: '6-8 semanas',
+    duration: '4-6 semanas',
   },
   {
     icon: '○',
     name: 'Design com Tintura',
-    description: 'Design personalizado que não afina sua sobrancelha, com técnica exclusiva de tintura. Durabilidade de até 30 dias.',
+    description: 'Design personalizado que não afina sua sobrancelha, com técnica exclusiva de tintura.',
     price: 'R$ 45,00',
   },
   {
@@ -38,14 +38,14 @@ const services = [
     name: 'Micro Labial',
     description: 'Melhora a cor natural dos lábios, corrige assimetrias e proporciona um aspecto mais definido. Leve efeito de batom, ideal para o dia a dia.',
     price: 'R$ 500,00',
-    duration: '8 meses',
+    duration: 'De 1 a 2 anos',
   },
   {
     icon: '○',
     name: 'Lash Lifting',
     description: 'Tratamento que curva e realça os cílios naturais, deixando o olhar mais aberto e sofisticado. Efeito natural e prático.',
     price: 'R$ 120,00',
-    duration: '6-8 semanas',
+    duration: '4-6 semanas',
   },
   {
     icon: '◇',
