@@ -292,11 +292,21 @@ function GalleryModal({ item, initialIndex, onClose }: GalleryModalProps) {
                   }}
                   className="absolute inset-0 w-full h-full"
                 >
+                  {/* Blurred background image for a premium blurred overlay effect */}
+                  <Image
+                    src={item.images![currentIdx]}
+                    alt=""
+                    fill
+                    className="object-cover blur-md opacity-25 scale-105 select-none pointer-events-none"
+                    sizes="(max-width: 768px) 100vw, 60vw"
+                    priority
+                  />
+                  {/* Crisp, uncropped main image */}
                   <Image
                     src={item.images![currentIdx]}
                     alt={`${item.title} Foto ${currentIdx + 1}`}
                     fill
-                    className="object-cover"
+                    className="object-contain relative z-10"
                     sizes="(max-width: 768px) 100vw, 60vw"
                     priority
                   />
@@ -333,7 +343,7 @@ function GalleryModal({ item, initialIndex, onClose }: GalleryModalProps) {
                   </div>
 
                   {/* Thumbnails Overlay */}
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2 p-1.5 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md max-w-[90%] overflow-x-auto scrollbar-none">
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex gap-1.5 p-1 rounded-xl bg-black/40 border border-white/10 backdrop-blur-md max-w-[90%] overflow-x-auto scrollbar-none">
                     {item.images!.map((img, i) => (
                       <button
                         key={i}
@@ -341,10 +351,10 @@ function GalleryModal({ item, initialIndex, onClose }: GalleryModalProps) {
                           e.stopPropagation()
                           handleThumbnailClick(i)
                         }}
-                        className={`relative h-10 w-10 md:h-12 md:w-12 rounded-xl overflow-hidden border-2 transition-all duration-300 flex-shrink-0 ${
+                        className={`relative h-6 w-6 md:h-8 md:w-8 rounded-md overflow-hidden border transition-all duration-300 flex-shrink-0 ${
                           i === currentIdx
-                            ? 'border-white scale-105 shadow-lg'
-                            : 'border-transparent opacity-50 hover:opacity-100 hover:scale-102'
+                            ? 'border-white scale-105 shadow-md'
+                            : 'border-transparent opacity-50 hover:opacity-100'
                         }`}
                       >
                         <Image
@@ -352,7 +362,7 @@ function GalleryModal({ item, initialIndex, onClose }: GalleryModalProps) {
                           alt={`Miniatura ${i + 1}`}
                           fill
                           className="object-cover"
-                          sizes="48px"
+                          sizes="32px"
                         />
                       </button>
                     ))}
