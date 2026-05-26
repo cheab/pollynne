@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { ChevronLeft, ChevronRight, Maximize2, X, Clock, Coins, MessageCircle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Maximize2, X, Clock, Coins, Phone } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface GalleryItem {
@@ -377,11 +377,11 @@ function GalleryModal({ item, initialIndex, onClose, services, settings }: Galle
               rel="noopener noreferrer"
               className="w-full py-3.5 px-6 rounded-xl bg-dark text-white hover:bg-gray transition-all duration-300 font-medium text-center flex items-center justify-center gap-2 group shadow-md hover:shadow-lg active:scale-[0.98] text-sm md:text-base"
             >
-              <MessageCircle
-                size={18}
+              <Phone
+                size={16}
                 className="transition-transform group-hover:scale-110"
               />
-              Agendar este Serviço
+              <span>Agendar este Serviço</span>
             </a>
           </div>
         </div>
@@ -445,9 +445,12 @@ export default function Gallery({ services, settings }: { services: any[]; setti
           </p>
           <a
             href={`https://wa.me/${settings?.whatsapp || '553195136154'}`}
-            className="inline-block btn-primary"
+            className="inline-flex items-center justify-center gap-1.5 btn-primary"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            Agendar Consulta Gratuita
+            <Phone size={16} />
+            <span>Agendar Consulta Gratuita</span>
           </a>
         </div>
       </div>

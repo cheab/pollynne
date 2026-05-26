@@ -41,6 +41,10 @@ export interface Settings {
   hours: string;
   days: string;
   slogan?: string;
+  instagramNickname?: string;
+  instagramAccessToken?: string;
+  instagramBusinessAccountId?: string;
+  instagramIsValidated?: boolean;
 }
 
 export const defaultSettings: Settings = {
@@ -49,7 +53,11 @@ export const defaultSettings: Settings = {
   email: 'contato@pollynne.com.br',
   hours: '09h às 19h',
   days: 'Terça a Sábado',
-  slogan: 'Seja seu próprio padrão de beleza'
+  slogan: 'Seja seu próprio padrão de beleza',
+  instagramNickname: 'pollynne_beauty',
+  instagramAccessToken: '',
+  instagramBusinessAccountId: '',
+  instagramIsValidated: false
 };
 
 export const defaultServices: Service[] = [

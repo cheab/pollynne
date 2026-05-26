@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import LogoTipo from './LogoTipo'
+import { Phone } from 'lucide-react'
 
 interface Settings {
   whatsapp: string
@@ -40,8 +41,14 @@ export default function Header({ settings }: { settings?: Settings }) {
           <Link href="#contato" className="hover:text-dark transition">
             Contato
           </Link>
-          <a href={`https://wa.me/${settings?.whatsapp || '553195136154'}`} className="btn-primary text-sm py-2 px-4">
-            Agendar
+          <a
+            href={`https://wa.me/${settings?.whatsapp || '553195136154'}`}
+            className="btn-primary text-sm py-2 px-4 flex items-center gap-1.5"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Phone size={14} />
+            <span>Agendar</span>
           </a>
         </div>
 
@@ -61,8 +68,15 @@ export default function Header({ settings }: { settings?: Settings }) {
               <Link href="#contato" onClick={() => setIsOpen(false)}>
                 Contato
               </Link>
-              <a href={`https://wa.me/${settings?.whatsapp || '553195136154'}`} className="btn-primary text-center">
-                Agendar
+              <a
+                href={`https://wa.me/${settings?.whatsapp || '553195136154'}`}
+                className="btn-primary text-center flex items-center justify-center gap-1.5"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setIsOpen(false)}
+              >
+                <Phone size={14} />
+                <span>Agendar</span>
               </a>
             </div>
           </div>

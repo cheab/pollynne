@@ -1,3 +1,5 @@
+import { Phone } from 'lucide-react'
+
 interface Settings {
   whatsapp: string
 }
@@ -16,9 +18,12 @@ export default function CTABanner({ settings }: { settings?: Settings }) {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <a
             href={`https://wa.me/${settings?.whatsapp || '553195136154'}`}
-            className="btn-primary"
+            className="btn-primary flex items-center justify-center gap-1.5"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            Agendar Consulta
+            <Phone size={16} />
+            <span>Agendar Consulta</span>
           </a>
           <a
             href="#servicos"

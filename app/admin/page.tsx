@@ -22,6 +22,25 @@ import {
   Scissors
 } from 'lucide-react'
 
+const InstagramIcon = ({ size = 16, className = '' }: { size?: number; className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+  </svg>
+)
+
 // Types matched with lib/db.ts
 interface Service {
   icon: string
@@ -74,6 +93,10 @@ export default function AdminPage() {
     hours: string
     days: string
     slogan?: string
+    instagramNickname?: string
+    instagramAccessToken?: string
+    instagramBusinessAccountId?: string
+    instagramIsValidated?: boolean
   }
   const [settings, setSettings] = useState<Settings>({
     whatsapp: '',
@@ -81,13 +104,20 @@ export default function AdminPage() {
     email: '',
     hours: '',
     days: '',
-    slogan: ''
+    slogan: '',
+    instagramNickname: '',
+    instagramAccessToken: '',
+    instagramBusinessAccountId: '',
+    instagramIsValidated: false
   })
 
   // UI state
-  const [activeTab, setActiveTab] = useState<'services' | 'combos' | 'address' | 'settings'>('services')
+  const [activeTab, setActiveTab] = useState<'services' | 'combos' | 'address' | 'settings' | 'social'>('services')
   const [isLoadingData, setIsLoadingData] = useState(false)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+  const [instagramPreview, setInstagramPreview] = useState<any[]>([])
+  const [isValidatingInsta, setIsValidatingInsta] = useState(false)
+  const [instaValidationError, setInstaValidationError] = useState('')
 
   // Service form state (for editing/creating)
   const [editingServiceIndex, setEditingServiceIndex] = useState<number | null>(null) // null = not editing, -1 = creating new
@@ -150,7 +180,11 @@ export default function AdminPage() {
           email: data.settings?.email || '',
           hours: data.settings?.hours || '',
           days: data.settings?.days || '',
-          slogan: data.settings?.slogan || ''
+          slogan: data.settings?.slogan || '',
+          instagramNickname: data.settings?.instagramNickname || '',
+          instagramAccessToken: data.settings?.instagramAccessToken || '',
+          instagramBusinessAccountId: data.settings?.instagramBusinessAccountId || '',
+          instagramIsValidated: data.settings?.instagramIsValidated || false
         })
       }
     } catch (err) {
@@ -261,6 +295,40 @@ export default function AdminPage() {
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault()
     handleSaveData('settings', settings)
+  }
+
+  const handleValidateInstagram = async () => {
+    setInstaValidationError('')
+    setInstagramPreview([])
+    setIsValidatingInsta(true)
+
+    try {
+      const res = await fetch('/api/admin/validate-instagram', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accessToken: settings.instagramAccessToken,
+          businessAccountId: settings.instagramBusinessAccountId
+        })
+      })
+
+      const data = await res.json()
+      if (res.ok) {
+        setInstagramPreview(data.media || [])
+        setSettings(prev => ({ ...prev, instagramIsValidated: true }))
+        showToast('Instagram validado com sucesso!')
+      } else {
+        setInstaValidationError(data.error || 'Erro ao validar conexão')
+        setSettings(prev => ({ ...prev, instagramIsValidated: false }))
+        showToast('Falha na validação do Instagram', 'error')
+      }
+    } catch (err) {
+      setInstaValidationError('Erro ao conectar ao servidor')
+      setSettings(prev => ({ ...prev, instagramIsValidated: false }))
+      showToast('Erro de conexão', 'error')
+    } finally {
+      setIsValidatingInsta(false)
+    }
   }
 
   // Services CRUD
@@ -536,6 +604,17 @@ export default function AdminPage() {
           >
             <Clock size={18} />
             Horários & Contato
+          </button>
+          <button
+            onClick={() => { setActiveTab('social'); setEditingServiceIndex(null); }}
+            className={`w-full text-left py-3.5 px-4 rounded-2xl font-medium text-sm flex items-center gap-3 transition-all duration-300 ${
+              activeTab === 'social'
+                ? 'bg-dark text-white shadow-md'
+                : 'bg-white hover:bg-neutral-100 text-gray hover:text-dark border border-neutral-200/60'
+            }`}
+          >
+            <InstagramIcon size={18} className={activeTab === 'social' ? 'text-white' : 'text-gray'} />
+            Redes Sociais
           </button>
         </aside>
 
@@ -1063,6 +1142,128 @@ export default function AdminPage() {
                 >
                   <Save size={16} />
                   Salvar Informações
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Social Tab */}
+          {activeTab === 'social' && (
+            <form onSubmit={handleSaveSettings} className="space-y-6">
+              <div>
+                <h2 className="font-display font-bold text-2xl text-dark">Integração de Redes Sociais</h2>
+                <p className="text-gray text-xs mt-1">Gerencie a conexão da sua conta do Instagram para exibir as postagens dinamicamente no site.</p>
+              </div>
+              <div className="w-full h-px bg-neutral-100" />
+
+              <div>
+                <label className="block text-xs font-semibold text-gray uppercase tracking-wider mb-2">Nickname do Instagram *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: pollynne_beauty"
+                  value={settings.instagramNickname || ''}
+                  onChange={(e) => setSettings({ ...settings, instagramNickname: e.target.value.replace(/[^a-zA-Z0-9_.]/g, '') })}
+                  className="w-full py-3 px-4 rounded-xl border border-beige/60 bg-neutral-50/50 focus:bg-white focus:border-dark focus:ring-1 focus:ring-dark outline-none transition-all text-sm"
+                />
+                <p className="text-[10px] text-gray mt-1.5">Nome de usuário do perfil do Instagram (sem o caractere @).</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-semibold text-gray uppercase tracking-wider mb-2">Instagram Access Token (Opcional)</label>
+                  <input
+                    type="password"
+                    placeholder="Cole o token de acesso da Graph API"
+                    value={settings.instagramAccessToken || ''}
+                    onChange={(e) => setSettings({ ...settings, instagramAccessToken: e.target.value })}
+                    className="w-full py-3 px-4 rounded-xl border border-beige/60 bg-neutral-50/50 focus:bg-white focus:border-dark focus:ring-1 focus:ring-dark outline-none transition-all text-sm"
+                  />
+                  <p className="text-[10px] text-gray mt-1.5">Gerado através do painel de desenvolvedores do Facebook Graph API.</p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray uppercase tracking-wider mb-2">Instagram Business Account ID (Opcional)</label>
+                  <input
+                    type="text"
+                    placeholder="Cole o ID numérico da conta comercial"
+                    value={settings.instagramBusinessAccountId || ''}
+                    onChange={(e) => setSettings({ ...settings, instagramBusinessAccountId: e.target.value.trim() })}
+                    className="w-full py-3 px-4 rounded-xl border border-beige/60 bg-neutral-50/50 focus:bg-white focus:border-dark focus:ring-1 focus:ring-dark outline-none transition-all text-sm"
+                  />
+                  <p className="text-[10px] text-gray mt-1.5">ID obtido via Graph Explorer para a página do Facebook integrada.</p>
+                </div>
+              </div>
+
+              {settings.instagramAccessToken && settings.instagramBusinessAccountId && (
+                <div className="border border-neutral-100 p-6 rounded-2xl bg-neutral-50/30 space-y-4">
+                  <div className="flex justify-between items-center flex-wrap gap-4">
+                    <div>
+                      <h4 className="text-sm font-semibold text-dark">Validação da Conexão</h4>
+                      <p className="text-gray text-[10px]">Testar credenciais e carregar prévia de postagens</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleValidateInstagram}
+                      disabled={isValidatingInsta}
+                      className="py-2 px-4 rounded-lg bg-dark text-white hover:bg-gray transition-colors text-xs font-semibold flex items-center gap-2"
+                    >
+                      {isValidatingInsta ? (
+                        <>
+                          <Loader2 size={14} className="animate-spin" />
+                          Validando...
+                        </>
+                      ) : (
+                        'Validar Conexão'
+                      )}
+                    </button>
+                  </div>
+
+                  {settings.instagramIsValidated ? (
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-100 text-xs font-medium">
+                      <Check size={16} />
+                      Conexão com Instagram validada com sucesso! As postagens serão exibidas no site.
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 text-amber-800 border border-amber-100 text-xs font-medium">
+                      <AlertCircle size={16} />
+                      A conexão ainda não foi validada ou as credenciais mudaram. O feed do Instagram está oculto na Home.
+                    </div>
+                  )}
+
+                  {instaValidationError && (
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 text-red-700 border border-red-100 text-xs font-medium">
+                      <AlertCircle size={16} />
+                      {instaValidationError}
+                    </div>
+                  )}
+
+                  {instagramPreview.length > 0 && (
+                    <div>
+                      <h5 className="text-[11px] font-bold text-gray uppercase tracking-wider mb-2">Prévia de Fotos Encontradas:</h5>
+                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                        {instagramPreview.map((item, index) => (
+                          <div key={index} className="aspect-square relative rounded-lg overflow-hidden border border-neutral-200">
+                            <img
+                              src={item.media_url}
+                              alt=""
+                              className="object-cover w-full h-full"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="flex justify-end pt-4 border-t border-neutral-100">
+                <button
+                  type="submit"
+                  className="py-3 px-8 rounded-xl bg-dark text-white hover:bg-gray transition-all shadow-md font-semibold text-sm flex items-center gap-2"
+                >
+                  <Save size={16} />
+                  Salvar Redes Sociais
                 </button>
               </div>
             </form>

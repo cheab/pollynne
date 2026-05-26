@@ -1,4 +1,23 @@
 import LogoTipo from './LogoTipo'
+import { Phone } from 'lucide-react'
+
+const InstagramIcon = ({ size = 16 }: { size?: number }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+  </svg>
+)
 
 interface Address {
   cidade: string
@@ -9,6 +28,7 @@ interface Settings {
   whatsapp: string
   phone: string
   email: string
+  instagramNickname?: string
 }
 
 export default function Footer({ address, settings }: { address: Address; settings: Settings }) {
@@ -25,11 +45,14 @@ export default function Footer({ address, settings }: { address: Address; settin
               Especialistas em beleza natural, buscando sempre a melhor versão do seu olhar.
             </p>
             <div className="flex gap-6">
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-beige text-sm transition">
-                Instagram
-              </a>
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-beige text-sm transition">
-                Facebook
+              <a
+                href={`https://instagram.com/${settings?.instagramNickname || 'pollynne_beauty'}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-beige text-sm transition flex items-center gap-2"
+              >
+                <InstagramIcon size={16} />
+                <span>Instagram</span>
               </a>
             </div>
           </div>
@@ -50,15 +73,30 @@ export default function Footer({ address, settings }: { address: Address; settin
             <h4 className="font-display font-bold text-lg mb-4">Contate-nos</h4>
             <div className="space-y-3 text-gray-400 text-sm flex flex-col items-center md:items-start">
               <p>{address?.cidade || 'Jequitinhonha'}, {address?.estado || 'MG'}</p>
-              <p>{settings?.phone || '(31) 99513-6154'}</p>
-              <p>{settings?.email || 'contato@pollynne.com.br'}</p>
+              <p>
+                <a
+                  href={`tel:${(settings?.phone || '(31) 99513-6154').replace(/[^\d+]/g, '')}`}
+                  className="hover:text-beige transition"
+                >
+                  {settings?.phone || '(31) 99513-6154'}
+                </a>
+              </p>
+              <p>
+                <a
+                  href={`mailto:${settings?.email || 'contato@pollynne.com.br'}`}
+                  className="hover:text-beige transition"
+                >
+                  {settings?.email || 'contato@pollynne.com.br'}
+                </a>
+              </p>
               <a
                 href={`https://wa.me/${settings?.whatsapp || '553195136154'}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block btn-primary text-sm py-2 px-4 mt-6"
+                className="text-gray-400 hover:text-beige text-sm transition flex items-center gap-2 mt-2"
               >
-                Whatsapp
+                <Phone size={16} />
+                <span>WhatsApp</span>
               </a>
             </div>
           </div>

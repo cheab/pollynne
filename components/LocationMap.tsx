@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { MapPin, Phone, Clock, Navigation } from 'lucide-react'
+import LogoTipo from './LogoTipo'
 
 interface Address {
   rua: string
@@ -43,9 +44,7 @@ export default function LocationMap({ address, settings }: { address: Address; s
           {/* Info Card */}
           <div className="lg:col-span-4 flex flex-col justify-between bg-beige-light p-8 rounded-2xl border border-beige shadow-sm">
             <div>
-              <h3 className="font-display text-xl font-bold text-dark mb-6">
-                Pollynne Leite Beauty
-              </h3>
+              <LogoTipo className="mb-6 mx-auto" />
               
               <div className="space-y-6">
                 <div className="flex gap-4 items-start">
@@ -80,9 +79,19 @@ export default function LocationMap({ address, settings }: { address: Address; s
                   </div>
                   <div>
                     <h4 className="font-display font-semibold text-sm text-dark mb-1">Contato</h4>
-                    <p className="text-gray text-sm leading-relaxed">
-                      {settings?.phone || '(31) 99513-6154'}<br />
-                      {settings?.email || 'contato@pollynne.com.br'}
+                    <p className="text-gray text-sm leading-relaxed flex flex-col">
+                      <a
+                        href={`tel:${(settings?.phone || '(31) 99513-6154').replace(/[^\d+]/g, '')}`}
+                        className="hover:text-beige transition"
+                      >
+                        {settings?.phone || '(31) 99513-6154'}
+                      </a>
+                      <a
+                        href={`mailto:${settings?.email || 'contato@pollynne.com.br'}`}
+                        className="hover:text-beige transition"
+                      >
+                        {settings?.email || 'contato@pollynne.com.br'}
+                      </a>
                     </p>
                   </div>
                 </div>
