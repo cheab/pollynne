@@ -4,12 +4,12 @@ import { Analytics } from "@vercel/analytics/next"
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Pollynne Leite Beauty - Especialista em Beleza Natural',
+  title: 'Pollynne Leite Beauty',
   description: 'Serviços premium de beleza natural. Design de sobrancelhas, microblading, lash lifting e muito mais.',
   openGraph: {
     title: 'Pollynne Leite Beauty',
     description: 'Especialista em tratamentos de beleza natural',
-    url: 'https://pollynne.com.br',
+    url: 'https://plbeauty.com.br',
     siteName: 'Pollynne Leite Beauty',
   },
   icons: {
