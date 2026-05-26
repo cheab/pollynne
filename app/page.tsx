@@ -6,20 +6,30 @@ import Gallery from '@/components/Gallery'
 import LocationMap from '@/components/LocationMap'
 import FloatingWhatsApp from '@/components/FloatingWhatsApp'
 import Footer from '@/components/Footer'
+import { getServices, getCombos, getAddress, getSettings } from '@/lib/db'
 
-export default function Home() {
+export const dynamic = 'force-dynamic'
+
+export default async function Home() {
+  const [services, combos, address, settings] = await Promise.all([
+    getServices(),
+    getCombos(),
+    getAddress(),
+    getSettings()
+  ])
+
   return (
     <>
-      <Header />
-      <FloatingWhatsApp />
+      <Header settings={settings} />
+      <FloatingWhatsApp settings={settings} />
       <main>
         <HeroCarousel />
-        <Services />
-        <CTABanner />
-        <Gallery />
-        <LocationMap />
+        <Services services={services} combos={combos} />
+        <CTABanner settings={settings} />
+        <Gallery services={services} settings={settings} />
+        <LocationMap address={address} settings={settings} />
       </main>
-      <Footer />
+      <Footer address={address} settings={settings} />
     </>
   )
 }

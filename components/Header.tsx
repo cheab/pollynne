@@ -4,7 +4,11 @@ import Link from 'next/link'
 import { useState } from 'react'
 import LogoTipo from './LogoTipo'
 
-export default function Header() {
+interface Settings {
+  whatsapp: string
+}
+
+export default function Header({ settings }: { settings?: Settings }) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -36,7 +40,7 @@ export default function Header() {
           <Link href="#contato" className="hover:text-dark transition">
             Contato
           </Link>
-          <a href="https://wa.me/553195136154" className="btn-primary text-sm py-2 px-4">
+          <a href={`https://wa.me/${settings?.whatsapp || '553195136154'}`} className="btn-primary text-sm py-2 px-4">
             Agendar
           </a>
         </div>
@@ -57,7 +61,7 @@ export default function Header() {
               <Link href="#contato" onClick={() => setIsOpen(false)}>
                 Contato
               </Link>
-              <a href="https://wa.me/553195136154" className="btn-primary text-center">
+              <a href={`https://wa.me/${settings?.whatsapp || '553195136154'}`} className="btn-primary text-center">
                 Agendar
               </a>
             </div>

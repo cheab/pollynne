@@ -4,8 +4,6 @@ import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight, Maximize2, X, Clock, Coins, MessageCircle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { services } from './Services'
-
 
 interface GalleryItem {
   id: number
@@ -13,54 +11,6 @@ interface GalleryItem {
   color: string
   images?: string[]
 }
-
-const gallery: GalleryItem[] = [
-  {
-    id: 1,
-    title: 'Design Premium',
-    color: 'from-gray-200 to-gray-100',
-    images: [
-      '/catalog/Design-premium.jpg',
-      '/catalog/Design-premium-.jpg',
-      '/catalog/Design-premium-_1_.jpg'
-    ]
-  },
-  {
-    id: 2,
-    title: 'Nano Art',
-    color: 'from-beige to-beige-light',
-  },
-  {
-    id: 3,
-    title: 'Micro Labial',
-    color: 'from-gray-300 to-gray-200',
-    images: [
-      '/catalog/Micro-labial.jpg',
-      '/catalog/Micro-labial-_1_.jpg',
-      '/catalog/Brow-Lamination-e-micro-labial.jpg'
-    ]
-  },
-  {
-    id: 4,
-    title: 'Brow Lamination',
-    color: 'from-gray-100 to-gray-50',
-    images: [
-      '/catalog/Brow-Lamination.jpg',
-      '/catalog/Brow-Lamination-_1_.jpg',
-      '/catalog/Brow-Lamination-e-micro-labial.jpg'
-    ]
-  },
-  {
-    id: 5,
-    title: 'Lash Lifting',
-    color: 'from-beige-light to-gray-100',
-  },
-  {
-    id: 6,
-    title: 'Hidra Color',
-    color: 'from-gray-200 to-beige-light',
-  },
-]
 
 function GalleryCard({
   item,
@@ -180,6 +130,8 @@ interface GalleryModalProps {
   item: GalleryItem
   initialIndex: number
   onClose: () => void
+  services: any[]
+  settings?: any
 }
 
 const slideVariants = {
@@ -197,7 +149,7 @@ const slideVariants = {
   }),
 }
 
-function GalleryModal({ item, initialIndex, onClose }: GalleryModalProps) {
+function GalleryModal({ item, initialIndex, onClose, services, settings }: GalleryModalProps) {
   const [[currentIdx, direction], setCurrentIdxAndDirection] = useState([initialIndex, 0])
 
   const hasImages = item.images && item.images.length > 0
@@ -250,7 +202,7 @@ function GalleryModal({ item, initialIndex, onClose }: GalleryModalProps) {
     (s) => s.name.toLowerCase() === item.title.toLowerCase()
   )
 
-  const whatsappNumber = '553195136154'
+  const whatsappNumber = settings?.whatsapp || '553195136154'
   const message = encodeURIComponent(
     `Olá, Pollynne! Vi o trabalho de "${item.title}" na galeria do seu site e gostaria de agendar uma sessão.`
   )
@@ -438,7 +390,7 @@ function GalleryModal({ item, initialIndex, onClose }: GalleryModalProps) {
   )
 }
 
-export default function Gallery() {
+export default function Gallery({ services, settings }: { services: any[]; settings?: any }) {
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
 
@@ -450,6 +402,22 @@ export default function Gallery() {
   const handleCloseModal = () => {
     setSelectedItem(null)
   }
+
+  const cardGradients = [
+    'from-gray-200 to-gray-100',
+    'from-beige to-beige-light',
+    'from-gray-300 to-gray-200',
+    'from-gray-100 to-gray-50',
+    'from-beige-light to-gray-100',
+    'from-gray-200 to-beige-light'
+  ]
+
+  const galleryList: GalleryItem[] = services.map((service, i) => ({
+    id: i + 1,
+    title: service.name,
+    color: cardGradients[i % cardGradients.length],
+    images: service.images
+  }))
 
   return (
     <section id="galeria" className="py-16 md:py-24 px-4 bg-beige-light">
@@ -465,7 +433,7 @@ export default function Gallery() {
 
         {/* Grid de Galeria */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {gallery.map((item) => (
+          {galleryList.map((item) => (
             <GalleryCard key={item.id} item={item} onCardClick={handleOpenModal} />
           ))}
         </div>
@@ -476,7 +444,7 @@ export default function Gallery() {
             Gostou de algum resultado? Agende sua sessão agora!
           </p>
           <a
-            href="https://wa.me/553195136154"
+            href={`https://wa.me/${settings?.whatsapp || '553195136154'}`}
             className="inline-block btn-primary"
           >
             Agendar Consulta Gratuita
@@ -491,6 +459,8 @@ export default function Gallery() {
             item={selectedItem}
             initialIndex={selectedImageIndex}
             onClose={handleCloseModal}
+            services={services}
+            settings={settings}
           />
         )}
       </AnimatePresence>

@@ -66,7 +66,23 @@ export const services = [
   },
 ]
 
-export default function Services() {
+interface ServicesProps {
+  services: {
+    icon: string
+    name: string
+    description: string
+    price: string
+    duration: string
+  }[]
+  combos: {
+    name: string
+    price: string
+    services: string[]
+    description?: string
+  }[]
+}
+
+export default function Services({ services: dbServices, combos: dbCombos }: ServicesProps) {
   return (
     <section id="servicos" className="py-16 md:py-24 px-4 bg-white">
       <div className="max-w-7xl mx-auto">
@@ -80,7 +96,7 @@ export default function Services() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {services.map((service, index) => (
+          {dbServices.map((service, index) => (
             <ServiceCard key={index} {...service} />
           ))}
         </div>
@@ -91,27 +107,19 @@ export default function Services() {
             Combos Especiais
           </h3>
           <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-xl p-6">
-              <h4 className="font-display font-bold text-lg text-dark mb-2">
-                4 Sessões Hidra Color
-              </h4>
-              <p className="text-gray text-sm mb-4">Pacote de hidratação profunda para os lábios</p>
-              <p className="font-display font-bold text-2xl text-dark">R$ 850,00</p>
-            </div>
-            <div className="bg-white rounded-xl p-6">
-              <h4 className="font-display font-bold text-lg text-dark mb-2">
-                Brow + Lash
-              </h4>
-              <p className="text-gray text-sm mb-4">Brow Lamination + Lash lifting com brinde</p>
-              <p className="font-display font-bold text-2xl text-dark">R$ 200,00</p>
-            </div>
-            <div className="bg-white rounded-xl p-6">
-              <h4 className="font-display font-bold text-lg text-dark mb-2">
-                Design + Buço
-              </h4>
-              <p className="text-gray text-sm mb-4">Design com tintura + Epilação de buço</p>
-              <p className="font-display font-bold text-2xl text-dark">R$ 50,00</p>
-            </div>
+            {dbCombos.map((combo, index) => (
+              <div key={index} className="bg-white rounded-xl p-6 flex flex-col justify-between">
+                <div>
+                  <h4 className="font-display font-bold text-lg text-dark mb-2">
+                    {combo.name}
+                  </h4>
+                  <p className="text-gray text-sm mb-4 leading-relaxed">
+                    {combo.description || combo.services.join(' + ')}
+                  </p>
+                </div>
+                <p className="font-display font-bold text-2xl text-dark mt-2">{combo.price}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>

@@ -3,7 +3,30 @@
 import React from 'react'
 import { MapPin, Phone, Clock, Navigation } from 'lucide-react'
 
-export default function LocationMap() {
+interface Address {
+  rua: string
+  numero: string
+  bairro: string
+  cidade: string
+  estado: string
+  cep: string
+}
+
+interface Settings {
+  whatsapp: string
+  phone: string
+  email: string
+  hours: string
+  days: string
+}
+
+export default function LocationMap({ address, settings }: { address: Address; settings?: Settings }) {
+  const mapsSearchQuery = encodeURIComponent(
+    `${address.rua}, ${address.numero}, ${address.bairro}, ${address.cidade} - ${address.estado}, ${address.cep}`
+  )
+  const mapsUrl = `https://maps.google.com/?q=${mapsSearchQuery}`
+  const iframeUrl = `https://maps.google.com/maps?q=${mapsSearchQuery}&t=&z=16&ie=UTF8&iwloc=&output=embed`
+
   return (
     <section id="localizacao" className="py-16 md:py-24 px-4 bg-white scroll-mt-20">
       <div className="max-w-7xl mx-auto">
@@ -32,8 +55,8 @@ export default function LocationMap() {
                   <div>
                     <h4 className="font-display font-semibold text-sm text-dark mb-1">Endereço</h4>
                     <p className="text-gray text-sm leading-relaxed">
-                      Jequitinhonha, MG<br />
-                      Centro, Atendimento personalizado com hora marcada.
+                      {address.rua}, {address.numero}<br />
+                      {address.bairro} - {address.cidade}, {address.estado}
                     </p>
                   </div>
                 </div>
@@ -45,7 +68,7 @@ export default function LocationMap() {
                   <div>
                     <h4 className="font-display font-semibold text-sm text-dark mb-1">Horário</h4>
                     <p className="text-gray text-sm leading-relaxed">
-                      Terça a Sábado: 09h às 19h<br />
+                      {settings?.days || 'Terça a Sábado'}: {settings?.hours || '09h às 19h'}<br />
                       Atendimento exclusivo sob agendamento.
                     </p>
                   </div>
@@ -58,8 +81,8 @@ export default function LocationMap() {
                   <div>
                     <h4 className="font-display font-semibold text-sm text-dark mb-1">Contato</h4>
                     <p className="text-gray text-sm leading-relaxed">
-                      (31) 99513-6154<br />
-                      contato@pollynne.com.br
+                      {settings?.phone || '(31) 99513-6154'}<br />
+                      {settings?.email || 'contato@pollynne.com.br'}
                     </p>
                   </div>
                 </div>
@@ -68,7 +91,7 @@ export default function LocationMap() {
 
             <div className="mt-8">
               <a
-                href="https://maps.google.com/?q=Jequitinhonha,+MG"
+                href={mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full btn-primary flex items-center justify-center gap-2 py-3 transition-transform hover:scale-[1.02]"
@@ -82,7 +105,7 @@ export default function LocationMap() {
           {/* Map Embed */}
           <div className="lg:col-span-8 h-96 lg:h-auto min-h-[350px] relative rounded-2xl overflow-hidden shadow-md border border-beige">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15239.387926150244!2d-41.011664!3d-16.435889!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x74b35ef58d53381%3A0xa63a23a31189c445!2sJequitinhonha%2C%20MG%2C%2039960-000!5e0!3m2!1spt-BR!2sbr!4v1700000000000!5m2!1spt-BR!2sbr"
+              src={iframeUrl}
               width="100%"
               height="100%"
               style={{ border: 0 }}

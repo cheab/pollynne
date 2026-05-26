@@ -1,4 +1,8 @@
-export default function CTABanner() {
+interface Settings {
+  whatsapp: string
+}
+
+export default function CTABanner({ settings }: { settings?: Settings }) {
   return (
     <section className="py-12 md:py-16 px-4 bg-dark text-white">
       <div className="max-w-4xl mx-auto text-center">
@@ -11,7 +15,7 @@ export default function CTABanner() {
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <a
-            href="https://wa.me/553195136154"
+            href={`https://wa.me/${settings?.whatsapp || '553195136154'}`}
             className="btn-primary"
           >
             Agendar Consulta

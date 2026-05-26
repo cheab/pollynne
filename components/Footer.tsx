@@ -1,6 +1,17 @@
 import LogoTipo from './LogoTipo'
 
-export default function Footer() {
+interface Address {
+  cidade: string
+  estado: string
+}
+
+interface Settings {
+  whatsapp: string
+  phone: string
+  email: string
+}
+
+export default function Footer({ address, settings }: { address: Address; settings: Settings }) {
   const currentYear = new Date().getFullYear()
 
   return (
@@ -38,10 +49,15 @@ export default function Footer() {
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
             <h4 className="font-display font-bold text-lg mb-4">Contate-nos</h4>
             <div className="space-y-3 text-gray-400 text-sm flex flex-col items-center md:items-start">
-              <p>Jequitinhonha, MG</p>
-              <p>(31) 99513-6154</p>
-              <p>contato@pollynne.com.br</p>
-              <a href="https://wa.me/553195136154" className="inline-block btn-primary text-sm py-2 px-4 mt-6">
+              <p>{address?.cidade || 'Jequitinhonha'}, {address?.estado || 'MG'}</p>
+              <p>{settings?.phone || '(31) 99513-6154'}</p>
+              <p>{settings?.email || 'contato@pollynne.com.br'}</p>
+              <a
+                href={`https://wa.me/${settings?.whatsapp || '553195136154'}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block btn-primary text-sm py-2 px-4 mt-6"
+              >
                 Whatsapp
               </a>
             </div>
@@ -51,7 +67,13 @@ export default function Footer() {
         {/* Divider */}
         <div className="border-t border-gray-700 pt-8 text-center text-gray-400">
           <p>© {currentYear} Pollynne Leite Beauty. Todos os direitos reservados.</p>
-          <p className="text-sm mt-2">Desenvolvido com ❤️ para sua beleza</p>
+          <p className="text-sm mt-2 flex items-center justify-center gap-1.5 flex-wrap">
+            <span>Desenvolvido com ❤️ para sua beleza</span>
+            <span className="text-gray-600">•</span>
+            <a href="/admin" className="text-gray-400 hover:text-beige transition text-xs font-light">
+              Área Administrativa
+            </a>
+          </p>
         </div>
       </div>
     </footer>
