@@ -12,6 +12,9 @@ export const metadata: Metadata = {
     url: 'https://pollynne.com.br',
     siteName: 'Pollynne Leite Beauty',
   },
+  icons: {
+    icon: '/favicon.png',
+  },
 }
 
 export default function RootLayout({
