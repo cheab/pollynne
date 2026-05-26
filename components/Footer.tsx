@@ -108,7 +108,7 @@ export default function Footer({ address, settings }: { address: Address; settin
           <p className="text-sm mt-2 flex items-center justify-center gap-1.5 flex-wrap">
             <span>Desenvolvido com ❤️ para sua beleza</span>
             <span className="text-gray-600">•</span>
-            <a href="/admin" className="text-gray-400 hover:text-beige transition text-xs font-light">
+            <a href="/admin" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-beige transition text-xs font-light">
               Área Administrativa
             </a>
           </p>
