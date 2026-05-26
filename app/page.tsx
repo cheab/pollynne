@@ -23,7 +23,7 @@ export default async function Home() {
       <Header settings={settings} />
       <FloatingWhatsApp settings={settings} />
       <main>
-        <HeroCarousel />
+        <HeroCarousel settings={settings} />
         <Services services={services} combos={combos} />
         <CTABanner settings={settings} />
         <Gallery services={services} settings={settings} />

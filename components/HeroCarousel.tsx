@@ -40,7 +40,11 @@ const variants = {
   },
 };
 
-export default function HeroCarousel() {
+interface Settings {
+  slogan?: string
+}
+
+export default function HeroCarousel({ settings }: { settings?: Settings }) {
   const [[page, direction], setPage] = useState([0, 0]);
 
   // Infinite carousel logic
@@ -106,7 +110,7 @@ export default function HeroCarousel() {
           transition={{ delay: 0.7, duration: 0.8 }}
           className="text-lg md:text-2xl font-body font-light tracking-wide drop-shadow-md"
         >
-          Seja seu próprio padrão de beleza
+          {settings?.slogan || 'Seja seu próprio padrão de beleza'}
         </motion.p>
       </div>
 

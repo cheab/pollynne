@@ -40,6 +40,7 @@ export interface Settings {
   email: string;
   hours: string;
   days: string;
+  slogan?: string;
 }
 
 export const defaultSettings: Settings = {
@@ -47,7 +48,8 @@ export const defaultSettings: Settings = {
   phone: '(31) 99513-6154',
   email: 'contato@pollynne.com.br',
   hours: '09h às 19h',
-  days: 'Terça a Sábado'
+  days: 'Terça a Sábado',
+  slogan: 'Seja seu próprio padrão de beleza'
 };
 
 export const defaultServices: Service[] = [

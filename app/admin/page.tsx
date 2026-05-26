@@ -73,13 +73,15 @@ export default function AdminPage() {
     email: string
     hours: string
     days: string
+    slogan?: string
   }
   const [settings, setSettings] = useState<Settings>({
     whatsapp: '',
     phone: '',
     email: '',
     hours: '',
-    days: ''
+    days: '',
+    slogan: ''
   })
 
   // UI state
@@ -142,7 +144,14 @@ export default function AdminPage() {
         setServices(data.services || [])
         setCombos(data.combos || [])
         setAddress(data.address || { rua: '', numero: '', bairro: '', cidade: '', estado: '', cep: '' })
-        setSettings(data.settings || { whatsapp: '', phone: '', email: '', hours: '', days: '' })
+        setSettings({
+          whatsapp: data.settings?.whatsapp || '',
+          phone: data.settings?.phone || '',
+          email: data.settings?.email || '',
+          hours: data.settings?.hours || '',
+          days: data.settings?.days || '',
+          slogan: data.settings?.slogan || ''
+        })
       }
     } catch (err) {
       showToast('Erro ao carregar dados do servidor', 'error')
@@ -967,6 +976,19 @@ export default function AdminPage() {
                 <p className="text-gray text-xs mt-1">Configure o WhatsApp, telefone de contato, email institucional e horários de atendimento</p>
               </div>
               <div className="w-full h-px bg-neutral-100" />
+
+              <div>
+                <label className="block text-xs font-semibold text-gray uppercase tracking-wider mb-2">Slogan do Site</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: Seja seu próprio padrão de beleza"
+                  value={settings.slogan || ''}
+                  onChange={(e) => setSettings({ ...settings, slogan: e.target.value })}
+                  className="w-full py-3 px-4 rounded-xl border border-beige/60 bg-neutral-50/50 focus:bg-white focus:border-dark focus:ring-1 focus:ring-dark outline-none transition-all text-sm"
+                />
+                <p className="text-[10px] text-gray mt-1.5">Slogan principal que será exibido no carrossel de abertura da página inicial.</p>
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
