@@ -93,19 +93,29 @@ function GalleryCard({
     >
       {hasImages ? (
         <div className="w-full h-full relative select-none">
+          {/* Blurred background image for the card */}
+          <Image
+            src={item.images![currentIdx]}
+            alt=""
+            fill
+            className="object-cover blur-sm opacity-25 scale-105 transition-transform duration-500 group-hover:scale-110 select-none pointer-events-none"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={item.id === 1}
+          />
+          {/* Crisp, uncropped main image */}
           <Image
             src={item.images![currentIdx]}
             alt={`${item.title} Image ${currentIdx + 1}`}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-contain relative z-10 transition-transform duration-500 group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             priority={item.id === 1}
           />
           {/* Subtle gradient overlay to read the text */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-black/5 opacity-100 group-hover:opacity-90 transition-opacity z-10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-black/5 opacity-100 group-hover:opacity-90 transition-opacity z-20" />
 
           {/* Hover zoom icon */}
-          <div className="absolute inset-0 flex items-center justify-center z-15 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+          <div className="absolute inset-0 flex items-center justify-center z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
             <div className="bg-white/20 backdrop-blur-md border border-white/30 p-3 rounded-full text-white transform scale-90 group-hover:scale-100 transition-all duration-300">
               <Maximize2 size={20} className="drop-shadow-sm" />
             </div>
@@ -116,21 +126,21 @@ function GalleryCard({
             <>
               <button
                 onClick={handlePrev}
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white/70 hover:bg-white text-dark flex items-center justify-center transition-colors shadow-md z-20 opacity-0 group-hover:opacity-100 duration-300"
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white/70 hover:bg-white text-dark flex items-center justify-center transition-colors shadow-md z-30 opacity-0 group-hover:opacity-100 duration-300"
                 aria-label="Imagem anterior"
               >
                 <ChevronLeft size={16} />
               </button>
               <button
                 onClick={handleNext}
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white/70 hover:bg-white text-dark flex items-center justify-center transition-colors shadow-md z-20 opacity-0 group-hover:opacity-100 duration-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white/70 hover:bg-white text-dark flex items-center justify-center transition-colors shadow-md z-30 opacity-0 group-hover:opacity-100 duration-300"
                 aria-label="Próxima imagem"
               >
                 <ChevronRight size={16} />
               </button>
 
               {/* Dots */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-30">
                 {item.images!.map((_, i) => (
                   <button
                     key={i}
@@ -138,9 +148,8 @@ function GalleryCard({
                       e.stopPropagation()
                       setCurrentIdx(i)
                     }}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      i === currentIdx ? 'bg-white w-3.5' : 'bg-white/50 w-1.5'
-                    }`}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${i === currentIdx ? 'bg-white w-3.5' : 'bg-white/50 w-1.5'
+                      }`}
                     aria-label={`Ir para imagem ${i + 1}`}
                   />
                 ))}
@@ -149,15 +158,15 @@ function GalleryCard({
           )}
 
           {/* Text Overlay */}
-          <div className="absolute bottom-0 left-0 w-full p-6 z-20">
-            <h3 className="font-display font-semibold text-xl text-white drop-shadow-md">
+          <div className="absolute bottom-0 left-0 w-full p-6 z-30">
+            <h3 className="font-display font-semibold text-xl text-white drop-shadow-md opacity-30 group-hover:opacity-100 transition-opacity duration-300">
               {item.title}
             </h3>
           </div>
         </div>
       ) : (
         <div className="w-full h-full flex flex-col items-center justify-center text-dark relative overflow-hidden p-6">
-          <h3 className="font-display font-bold text-2xl text-center px-4 text-dark group-hover:scale-105 transform transition-transform duration-300">
+          <h3 className="font-display font-bold text-2xl text-center px-4 text-dark opacity-30 group-hover:opacity-100 group-hover:scale-105 transform transition-all duration-300">
             {item.title}
           </h3>
           <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
@@ -343,7 +352,7 @@ function GalleryModal({ item, initialIndex, onClose }: GalleryModalProps) {
                   </div>
 
                   {/* Thumbnails Overlay */}
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex gap-1.5 p-1 rounded-xl bg-black/40 border border-white/10 backdrop-blur-md max-w-[90%] overflow-x-auto scrollbar-none">
+                  <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-20 flex gap-1 p-0.5 rounded-lg bg-black/40 border border-white/10 backdrop-blur-md max-w-[90%] overflow-x-auto scrollbar-none">
                     {item.images!.map((img, i) => (
                       <button
                         key={i}
@@ -351,18 +360,17 @@ function GalleryModal({ item, initialIndex, onClose }: GalleryModalProps) {
                           e.stopPropagation()
                           handleThumbnailClick(i)
                         }}
-                        className={`relative h-6 w-6 md:h-8 md:w-8 rounded-md overflow-hidden border transition-all duration-300 flex-shrink-0 ${
-                          i === currentIdx
-                            ? 'border-white scale-105 shadow-md'
+                        className={`relative h-4 w-4 md:h-5 md:w-5 rounded-sm overflow-hidden border transition-all duration-300 flex-shrink-0 ${i === currentIdx
+                            ? 'border-white scale-105 shadow-sm'
                             : 'border-transparent opacity-50 hover:opacity-100'
-                        }`}
+                          }`}
                       >
                         <Image
                           src={img}
                           alt={`Miniatura ${i + 1}`}
                           fill
                           className="object-cover"
-                          sizes="32px"
+                          sizes="20px"
                         />
                       </button>
                     ))}
