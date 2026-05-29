@@ -1,13 +1,4 @@
-// In-memory local fallback store for development
-const globalStore = global as any;
-if (!globalStore.db) {
-  globalStore.db = {
-    services: null,
-    combos: null,
-    address: null,
-    settings: null,
-  };
-}
+import { createClient } from '@libsql/client';
 
 export interface Service {
   icon: string;
@@ -171,125 +162,282 @@ export const defaultAddress: Address = {
   cep: '39960-000'
 };
 
-async function runKVCommand(command: string[]) {
-  const url = process.env.KV_REST_API_URL;
-  const token = process.env.KV_REST_API_TOKEN;
-  if (!url || !token) return null;
+const url = process.env.TURSO_DATABASE_URL || 'file:local.db';
+const authToken = process.env.TURSO_AUTH_TOKEN;
 
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(command),
-      next: { revalidate: 0 }
-    });
-    if (!res.ok) {
-      console.error('KV Error:', res.statusText);
-      return null;
+const client = createClient({
+  url,
+  authToken,
+});
+
+let initPromise: Promise<void> | null = null;
+
+async function initDb() {
+  // Create tables if they don't exist
+  await client.batch([
+    `CREATE TABLE IF NOT EXISTS services (
+      name TEXT PRIMARY KEY,
+      icon TEXT NOT NULL,
+      description TEXT NOT NULL,
+      price TEXT NOT NULL,
+      duration TEXT NOT NULL,
+      images TEXT
+    )`,
+    `CREATE TABLE IF NOT EXISTS combos (
+      name TEXT PRIMARY KEY,
+      price TEXT NOT NULL,
+      services TEXT NOT NULL,
+      description TEXT
+    )`,
+    `CREATE TABLE IF NOT EXISTS address (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      rua TEXT NOT NULL,
+      numero TEXT NOT NULL,
+      bairro TEXT NOT NULL,
+      cidade TEXT NOT NULL,
+      estado TEXT NOT NULL,
+      cep TEXT NOT NULL
+    )`,
+    `CREATE TABLE IF NOT EXISTS settings (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      whatsapp TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      email TEXT NOT NULL,
+      hours TEXT NOT NULL,
+      days TEXT NOT NULL,
+      slogan TEXT,
+      instagramNickname TEXT,
+      instagramAccessToken TEXT,
+      instagramBusinessAccountId TEXT,
+      instagramIsValidated INTEGER DEFAULT 0
+    )`
+  ], "write");
+
+  // Check if tables are empty, and if so, seed them
+  const servicesCheck = await client.execute("SELECT count(*) as count FROM services");
+  if (servicesCheck.rows[0].count === 0) {
+    for (const s of defaultServices) {
+      await client.execute({
+        sql: "INSERT INTO services (name, icon, description, price, duration, images) VALUES (?, ?, ?, ?, ?, ?)",
+        args: [s.name, s.icon, s.description, s.price, s.duration, JSON.stringify(s.images || [])]
+      });
     }
-    const data = await res.json();
-    return data.result;
-  } catch (err) {
-    console.error('KV Fetch Error:', err);
-    return null;
   }
+
+  const combosCheck = await client.execute("SELECT count(*) as count FROM combos");
+  if (combosCheck.rows[0].count === 0) {
+    for (const c of defaultCombos) {
+      await client.execute({
+        sql: "INSERT INTO combos (name, price, services, description) VALUES (?, ?, ?, ?)",
+        args: [c.name, c.price, JSON.stringify(c.services), c.description || '']
+      });
+    }
+  }
+
+  const addressCheck = await client.execute("SELECT count(*) as count FROM address WHERE id = 1");
+  if (addressCheck.rows[0].count === 0) {
+    await client.execute({
+      sql: "INSERT INTO address (id, rua, numero, bairro, cidade, estado, cep) VALUES (1, ?, ?, ?, ?, ?, ?)",
+      args: [defaultAddress.rua, defaultAddress.numero, defaultAddress.bairro, defaultAddress.cidade, defaultAddress.estado, defaultAddress.cep]
+    });
+  }
+
+  const settingsCheck = await client.execute("SELECT count(*) as count FROM settings WHERE id = 1");
+  if (settingsCheck.rows[0].count === 0) {
+    await client.execute({
+      sql: `INSERT INTO settings (
+        id, whatsapp, phone, email, hours, days, slogan, 
+        instagramNickname, instagramAccessToken, instagramBusinessAccountId, instagramIsValidated
+      ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        defaultSettings.whatsapp,
+        defaultSettings.phone,
+        defaultSettings.email,
+        defaultSettings.hours,
+        defaultSettings.days,
+        defaultSettings.slogan || '',
+        defaultSettings.instagramNickname || '',
+        defaultSettings.instagramAccessToken || '',
+        defaultSettings.instagramBusinessAccountId || '',
+        defaultSettings.instagramIsValidated ? 1 : 0
+      ]
+    });
+  }
+}
+
+function ensureDb() {
+  if (!initPromise) {
+    initPromise = initDb();
+  }
+  return initPromise;
 }
 
 export async function getServices(): Promise<Service[]> {
-  const result = await runKVCommand(['GET', 'services']);
-  if (result) {
-    try {
-      return JSON.parse(result);
-    } catch {
-      return defaultServices;
-    }
+  await ensureDb();
+  try {
+    const result = await client.execute("SELECT * FROM services");
+    return result.rows.map(row => ({
+      name: row.name as string,
+      icon: row.icon as string,
+      description: row.description as string,
+      price: row.price as string,
+      duration: row.duration as string,
+      images: row.images ? JSON.parse(row.images as string) : undefined
+    }));
+  } catch (err) {
+    console.error('Error getting services:', err);
+    return defaultServices;
   }
-  
-  if (!globalStore.db.services) {
-    globalStore.db.services = [...defaultServices];
-  }
-  return globalStore.db.services;
 }
 
 export async function saveServices(services: Service[]): Promise<boolean> {
-  const success = await runKVCommand(['SET', 'services', JSON.stringify(services)]);
-  if (success !== null) return true;
-
-  globalStore.db.services = services;
-  return true;
+  await ensureDb();
+  try {
+    const tx = await client.transaction("write");
+    try {
+      await tx.execute("DELETE FROM services");
+      for (const s of services) {
+        await tx.execute({
+          sql: "INSERT INTO services (name, icon, description, price, duration, images) VALUES (?, ?, ?, ?, ?, ?)",
+          args: [s.name, s.icon, s.description, s.price, s.duration, JSON.stringify(s.images || [])]
+        });
+      }
+      await tx.commit();
+      return true;
+    } catch (err) {
+      await tx.rollback();
+      throw err;
+    }
+  } catch (err) {
+    console.error('Error saving services:', err);
+    return false;
+  }
 }
 
 export async function getCombos(): Promise<Combo[]> {
-  const result = await runKVCommand(['GET', 'combos']);
-  if (result) {
-    try {
-      return JSON.parse(result);
-    } catch {
-      return defaultCombos;
-    }
+  await ensureDb();
+  try {
+    const result = await client.execute("SELECT * FROM combos");
+    return result.rows.map(row => ({
+      name: row.name as string,
+      price: row.price as string,
+      services: JSON.parse(row.services as string),
+      description: row.description as string || undefined
+    }));
+  } catch (err) {
+    console.error('Error getting combos:', err);
+    return defaultCombos;
   }
-
-  if (!globalStore.db.combos) {
-    globalStore.db.combos = [...defaultCombos];
-  }
-  return globalStore.db.combos;
 }
 
 export async function saveCombos(combos: Combo[]): Promise<boolean> {
-  const success = await runKVCommand(['SET', 'combos', JSON.stringify(combos)]);
-  if (success !== null) return true;
-
-  globalStore.db.combos = combos;
-  return true;
+  await ensureDb();
+  try {
+    const tx = await client.transaction("write");
+    try {
+      await tx.execute("DELETE FROM combos");
+      for (const c of combos) {
+        await tx.execute({
+          sql: "INSERT INTO combos (name, price, services, description) VALUES (?, ?, ?, ?)",
+          args: [c.name, c.price, JSON.stringify(c.services), c.description || '']
+        });
+      }
+      await tx.commit();
+      return true;
+    } catch (err) {
+      await tx.rollback();
+      throw err;
+    }
+  } catch (err) {
+    console.error('Error saving combos:', err);
+    return false;
+  }
 }
 
 export async function getAddress(): Promise<Address> {
-  const result = await runKVCommand(['GET', 'address']);
-  if (result) {
-    try {
-      return JSON.parse(result);
-    } catch {
-      return defaultAddress;
-    }
+  await ensureDb();
+  try {
+    const result = await client.execute("SELECT * FROM address WHERE id = 1");
+    if (result.rows.length === 0) return defaultAddress;
+    const row = result.rows[0];
+    return {
+      rua: row.rua as string,
+      numero: row.numero as string,
+      bairro: row.bairro as string,
+      cidade: row.cidade as string,
+      estado: row.estado as string,
+      cep: row.cep as string
+    };
+  } catch (err) {
+    console.error('Error getting address:', err);
+    return defaultAddress;
   }
-
-  if (!globalStore.db.address) {
-    globalStore.db.address = { ...defaultAddress };
-  }
-  return globalStore.db.address;
 }
 
 export async function saveAddress(address: Address): Promise<boolean> {
-  const success = await runKVCommand(['SET', 'address', JSON.stringify(address)]);
-  if (success !== null) return true;
-
-  globalStore.db.address = address;
-  return true;
+  await ensureDb();
+  try {
+    await client.execute({
+      sql: `INSERT OR REPLACE INTO address (id, rua, numero, bairro, cidade, estado, cep) 
+            VALUES (1, ?, ?, ?, ?, ?, ?)`,
+      args: [address.rua, address.numero, address.bairro, address.cidade, address.estado, address.cep]
+    });
+    return true;
+  } catch (err) {
+    console.error('Error saving address:', err);
+    return false;
+  }
 }
 
 export async function getSettings(): Promise<Settings> {
-  const result = await runKVCommand(['GET', 'settings']);
-  if (result) {
-    try {
-      return JSON.parse(result);
-    } catch {
-      return defaultSettings;
-    }
+  await ensureDb();
+  try {
+    const result = await client.execute("SELECT * FROM settings WHERE id = 1");
+    if (result.rows.length === 0) return defaultSettings;
+    const row = result.rows[0];
+    return {
+      whatsapp: row.whatsapp as string,
+      phone: row.phone as string,
+      email: row.email as string,
+      hours: row.hours as string,
+      days: row.days as string,
+      slogan: row.slogan as string || undefined,
+      instagramNickname: row.instagramNickname as string || undefined,
+      instagramAccessToken: row.instagramAccessToken as string || undefined,
+      instagramBusinessAccountId: row.instagramBusinessAccountId as string || undefined,
+      instagramIsValidated: row.instagramIsValidated === 1
+    };
+  } catch (err) {
+    console.error('Error getting settings:', err);
+    return defaultSettings;
   }
-
-  if (!globalStore.db.settings) {
-    globalStore.db.settings = { ...defaultSettings };
-  }
-  return globalStore.db.settings;
 }
 
 export async function saveSettings(settings: Settings): Promise<boolean> {
-  const success = await runKVCommand(['SET', 'settings', JSON.stringify(settings)]);
-  if (success !== null) return true;
-
-  globalStore.db.settings = settings;
-  return true;
+  await ensureDb();
+  try {
+    await client.execute({
+      sql: `INSERT OR REPLACE INTO settings (
+        id, whatsapp, phone, email, hours, days, slogan, 
+        instagramNickname, instagramAccessToken, instagramBusinessAccountId, instagramIsValidated
+      ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        settings.whatsapp,
+        settings.phone,
+        settings.email,
+        settings.hours,
+        settings.days,
+        settings.slogan || '',
+        settings.instagramNickname || '',
+        settings.instagramAccessToken || '',
+        settings.instagramBusinessAccountId || '',
+        settings.instagramIsValidated ? 1 : 0
+      ]
+    });
+    return true;
+  } catch (err) {
+    console.error('Error saving settings:', err);
+    return false;
+  }
 }
+

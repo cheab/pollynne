@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.3",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "framer-motion": "^12.39.0",
