@@ -162,7 +162,7 @@ export const defaultAddress: Address = {
   cep: '39960-000'
 };
 
-const url = process.env.TURSO_DATABASE_URL?.trim() || 'file:local.db';
+const url = process.env.TURSO_DATABASE_URL?.trim();
 const authToken = process.env.TURSO_AUTH_TOKEN?.trim();
 
 const client = createClient({
