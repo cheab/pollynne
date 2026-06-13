@@ -6,14 +6,19 @@ import Image from "next/image";
 import LogoTipo from "./LogoTipo";
 import { ChevronDown } from "lucide-react";
 
+const getHeroImage = (num: number) => {
+  const baseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL?.replace(/\/$/, '') || '';
+  return `${baseUrl}/hero/hero${num}.jpg`;
+};
+
 const images = [
-  "/hero/hero1.jpg",
-  "/hero/hero2.jpg",
-  "/hero/hero3.jpg",
-  "/hero/hero4.jpg",
-  "/hero/hero5.jpg",
-  "/hero/hero6.jpg",
-  "/hero/hero7.jpg",
+  getHeroImage(1),
+  getHeroImage(2),
+  getHeroImage(3),
+  getHeroImage(4),
+  getHeroImage(5),
+  getHeroImage(6),
+  getHeroImage(7),
 ];
 
 const variants = {

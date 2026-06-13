@@ -9,7 +9,7 @@ interface GalleryItem {
   id: number
   title: string
   color: string
-  images?: string[]
+  photos?: { id: string; url: string; title: string; }[]
 }
 
 function GalleryCard({
@@ -23,18 +23,18 @@ function GalleryCard({
 
   const handleNext = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!item.images) return
-    setCurrentIdx((prev) => (prev + 1) % item.images!.length)
+    if (!item.photos) return
+    setCurrentIdx((prev) => (prev + 1) % item.photos!.length)
   }
 
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!item.images) return
-    setCurrentIdx((prev) => (prev - 1 + item.images!.length) % item.images!.length)
+    if (!item.photos) return
+    setCurrentIdx((prev) => (prev - 1 + item.photos!.length) % item.photos!.length)
   }
 
-  const hasImages = item.images && item.images.length > 0
-  const isCarousel = item.images && item.images.length > 1
+  const hasImages = item.photos && item.photos.length > 0
+  const isCarousel = item.photos && item.photos.length > 1
 
   return (
     <div
@@ -45,7 +45,7 @@ function GalleryCard({
         <div className="w-full h-full relative select-none">
           {/* Blurred background image for the card */}
           <Image
-            src={item.images![currentIdx]}
+            src={item.photos![currentIdx].url}
             alt=""
             fill
             className="object-cover blur-sm opacity-25 scale-105 transition-transform duration-500 group-hover:scale-110 select-none pointer-events-none"
@@ -54,8 +54,8 @@ function GalleryCard({
           />
           {/* Crisp, uncropped main image */}
           <Image
-            src={item.images![currentIdx]}
-            alt={`${item.title} Image ${currentIdx + 1}`}
+            src={item.photos![currentIdx].url}
+            alt={item.photos![currentIdx].title || `${item.title} Foto ${currentIdx + 1}`}
             fill
             className="object-contain relative z-10 transition-transform duration-500 group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -91,7 +91,7 @@ function GalleryCard({
 
               {/* Dots */}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-30">
-                {item.images!.map((_, i) => (
+                {item.photos!.map((_, i) => (
                   <button
                     key={i}
                     onClick={(e) => {
@@ -152,21 +152,21 @@ const slideVariants = {
 function GalleryModal({ item, initialIndex, onClose, services, settings }: GalleryModalProps) {
   const [[currentIdx, direction], setCurrentIdxAndDirection] = useState([initialIndex, 0])
 
-  const hasImages = item.images && item.images.length > 0
-  const isCarousel = item.images && item.images.length > 1
+  const hasImages = item.photos && item.photos.length > 0
+  const isCarousel = item.photos && item.photos.length > 1
 
   const handleNext = () => {
-    if (!item.images) return
+    if (!item.photos) return
     setCurrentIdxAndDirection(([prevIdx]) => {
-      const nextIdx = (prevIdx + 1) % item.images!.length
+      const nextIdx = (prevIdx + 1) % item.photos!.length
       return [nextIdx, 1]
     })
   }
 
   const handlePrev = () => {
-    if (!item.images) return
+    if (!item.photos) return
     setCurrentIdxAndDirection(([prevIdx]) => {
-      const nextIdx = (prevIdx - 1 + item.images!.length) % item.images!.length
+      const nextIdx = (prevIdx - 1 + item.photos!.length) % item.photos!.length
       return [nextIdx, -1]
     })
   }
@@ -255,7 +255,7 @@ function GalleryModal({ item, initialIndex, onClose, services, settings }: Galle
                 >
                   {/* Blurred background image for a premium blurred overlay effect */}
                   <Image
-                    src={item.images![currentIdx]}
+                    src={item.photos![currentIdx].url}
                     alt=""
                     fill
                     className="object-cover blur-md opacity-25 scale-105 select-none pointer-events-none"
@@ -264,8 +264,8 @@ function GalleryModal({ item, initialIndex, onClose, services, settings }: Galle
                   />
                   {/* Crisp, uncropped main image */}
                   <Image
-                    src={item.images![currentIdx]}
-                    alt={`${item.title} Foto ${currentIdx + 1}`}
+                    src={item.photos![currentIdx].url}
+                    alt={item.photos![currentIdx].title || `${item.title} Foto ${currentIdx + 1}`}
                     fill
                     className="object-contain relative z-10"
                     sizes="(max-width: 768px) 100vw, 60vw"
@@ -300,12 +300,12 @@ function GalleryModal({ item, initialIndex, onClose, services, settings }: Galle
 
                   {/* Page Indicator Badge */}
                   <div className="absolute top-4 left-4 z-20 px-3 py-1 rounded-full bg-black/40 border border-white/10 backdrop-blur-md text-white text-[11px] font-medium tracking-wide">
-                    {currentIdx + 1} de {item.images!.length}
+                    {currentIdx + 1} de {item.photos!.length}
                   </div>
 
                   {/* Thumbnails Overlay */}
                   <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-20 flex gap-1 p-0.5 rounded-lg bg-black/40 border border-white/10 backdrop-blur-md max-w-[90%] overflow-x-auto scrollbar-none">
-                    {item.images!.map((img, i) => (
+                    {item.photos!.map((img, i) => (
                       <button
                         key={i}
                         onClick={(e) => {
@@ -318,8 +318,8 @@ function GalleryModal({ item, initialIndex, onClose, services, settings }: Galle
                           }`}
                       >
                         <Image
-                          src={img}
-                          alt={`Miniatura ${i + 1}`}
+                          src={img.url}
+                          alt={img.title || `Miniatura ${i + 1}`}
                           fill
                           className="object-cover"
                           sizes="20px"
@@ -416,7 +416,7 @@ export default function Gallery({ services, settings }: { services: any[]; setti
     id: i + 1,
     title: service.name,
     color: cardGradients[i % cardGradients.length],
-    images: service.images
+    photos: service.photos
   }))
 
   return (

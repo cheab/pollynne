@@ -1,12 +1,20 @@
 import { createClient } from '@libsql/client';
+import crypto from 'crypto';
+
+export interface ServicePhoto {
+  id: string;
+  url: string;
+  title: string;
+}
 
 export interface Service {
+  id: string;
   icon: string;
   name: string;
   description: string;
   price: string;
   duration: string;
-  images?: string[];
+  photos?: ServicePhoto[];
 }
 
 export interface Combo {
@@ -53,18 +61,20 @@ export const defaultSettings: Settings = {
 
 export const defaultServices: Service[] = [
   {
+    id: crypto.randomUUID(),
     icon: '○',
     name: 'Design Premium',
     description: 'Técnica utilizada para preservar o máximo de pelos seus, dando um formato e harmonia a suas sobrancelhas de forma natural.',
     price: 'R$ 30,00',
     duration: '40 min',
-    images: [
-      '/catalog/Design-premium.jpg',
-      '/catalog/Design-premium-.jpg',
-      '/catalog/Design-premium-_1_.jpg'
+    photos: [
+      { id: crypto.randomUUID(), url: '/catalog/Design-premium.jpg', title: 'Foto 1' },
+      { id: crypto.randomUUID(), url: '/catalog/Design-premium-.jpg', title: 'Foto 2' },
+      { id: crypto.randomUUID(), url: '/catalog/Design-premium-_1_.jpg', title: 'Foto 3' }
     ]
   },
   {
+    id: crypto.randomUUID(),
     icon: '○',
     name: 'Epilação de Buço',
     description: 'Remova os pelos indesejados do buço de forma rápida, prática e delicada. Acabamento suave e aparência natural.',
@@ -72,18 +82,20 @@ export const defaultServices: Service[] = [
     duration: '15 min'
   },
   {
+    id: crypto.randomUUID(),
     icon: '◆',
     name: 'Brow Lamination',
     description: 'Tratamento que alinha e fixa os fios da sobrancelha, deixando o olhar mais expressivo e harmonioso. Efeito de sobrancelha sempre penteada.',
     price: 'R$ 120,00',
     duration: '4-6 semanas',
-    images: [
-      '/catalog/Brow-Lamination.jpg',
-      '/catalog/Brow-Lamination-_1_.jpg',
-      '/catalog/Brow-Lamination-e-micro-labial.jpg'
+    photos: [
+      { id: crypto.randomUUID(), url: '/catalog/Brow-Lamination.jpg', title: 'Foto 1' },
+      { id: crypto.randomUUID(), url: '/catalog/Brow-Lamination-_1_.jpg', title: 'Foto 2' },
+      { id: crypto.randomUUID(), url: '/catalog/Brow-Lamination-e-micro-labial.jpg', title: 'Foto 3' }
     ]
   },
   {
+    id: crypto.randomUUID(),
     icon: '○',
     name: 'Design com Tintura',
     description: 'Design personalizado que não afina sua sobrancelha, com técnica exclusiva de tintura.',
@@ -91,6 +103,7 @@ export const defaultServices: Service[] = [
     duration: '50 min'
   },
   {
+    id: crypto.randomUUID(),
     icon: '◆',
     name: 'Nano Art',
     description: 'Técnica para preencher suas falhas com fios realistas, que duram em média 8 meses. Natural e realista para suas sobrancelhas dos sonhos!',
@@ -98,18 +111,20 @@ export const defaultServices: Service[] = [
     duration: '8 meses'
   },
   {
+    id: crypto.randomUUID(),
     icon: '◆',
     name: 'Micro Labial',
     description: 'Melhora a cor natural dos lábios, corrige assimetrias e proporciona um aspecto mais definido. Leve efeito de batom, ideal para o dia a dia.',
     price: 'R$ 500,00',
     duration: 'De 1 a 2 anos',
-    images: [
-      '/catalog/Micro-labial.jpg',
-      '/catalog/Micro-labial-_1_.jpg',
-      '/catalog/Brow-Lamination-e-micro-labial.jpg'
+    photos: [
+      { id: crypto.randomUUID(), url: '/catalog/Micro-labial.jpg', title: 'Foto 1' },
+      { id: crypto.randomUUID(), url: '/catalog/Micro-labial-_1_.jpg', title: 'Foto 2' },
+      { id: crypto.randomUUID(), url: '/catalog/Brow-Lamination-e-micro-labial.jpg', title: 'Foto 3' }
     ]
   },
   {
+    id: crypto.randomUUID(),
     icon: '○',
     name: 'Lash Lifting',
     description: 'Tratamento que curva e realça os cílios naturais, deixando o olhar mais aberto e sofisticado. Efeito natural e prático.',
@@ -117,6 +132,7 @@ export const defaultServices: Service[] = [
     duration: '4-6 semanas'
   },
   {
+    id: crypto.randomUUID(),
     icon: '◇',
     name: 'Hidra Color',
     description: 'Tratamento que hidrata profundamente os lábios enquanto realça a cor natural, deixando-os mais macios e saudáveis.',
@@ -124,6 +140,7 @@ export const defaultServices: Service[] = [
     duration: '2-3 meses'
   },
   {
+    id: crypto.randomUUID(),
     icon: '◇',
     name: 'Hidra Lips',
     description: 'Tratamento que melhora o aspecto dos lábios, deixando-os profundamente hidratados e saudáveis com aspecto revitalizado.',
@@ -176,12 +193,18 @@ async function initDb() {
   // Create tables if they don't exist
   await client.batch([
     `CREATE TABLE IF NOT EXISTS services (
-      name TEXT PRIMARY KEY,
+      id TEXT PRIMARY KEY,
+      name TEXT UNIQUE NOT NULL,
       icon TEXT NOT NULL,
       description TEXT NOT NULL,
       price TEXT NOT NULL,
-      duration TEXT NOT NULL,
-      images TEXT
+      duration TEXT NOT NULL
+    )`,
+    `CREATE TABLE IF NOT EXISTS services_photos (
+      id TEXT PRIMARY KEY,
+      service_id TEXT NOT NULL,
+      url TEXT NOT NULL,
+      title TEXT NOT NULL
     )`,
     `CREATE TABLE IF NOT EXISTS combos (
       name TEXT PRIMARY KEY,
@@ -218,9 +241,17 @@ async function initDb() {
   if (servicesCheck.rows[0].count === 0) {
     for (const s of defaultServices) {
       await client.execute({
-        sql: "INSERT INTO services (name, icon, description, price, duration, images) VALUES (?, ?, ?, ?, ?, ?)",
-        args: [s.name, s.icon, s.description, s.price, s.duration, JSON.stringify(s.images || [])]
+        sql: "INSERT INTO services (id, name, icon, description, price, duration) VALUES (?, ?, ?, ?, ?, ?)",
+        args: [s.id, s.name, s.icon, s.description, s.price, s.duration]
       });
+      if (s.photos && s.photos.length > 0) {
+        for (const p of s.photos) {
+          await client.execute({
+            sql: "INSERT INTO services_photos (id, service_id, url, title) VALUES (?, ?, ?, ?)",
+            args: [p.id, s.id, p.url, p.title]
+          });
+        }
+      }
     }
   }
 
@@ -275,14 +306,28 @@ function ensureDb() {
 export async function getServices(): Promise<Service[]> {
   await ensureDb();
   try {
-    const result = await client.execute("SELECT * FROM services");
-    return result.rows.map(row => ({
+    const servicesResult = await client.execute("SELECT * FROM services");
+    const photosResult = await client.execute("SELECT * FROM services_photos");
+    
+    const photosByService: Record<string, ServicePhoto[]> = {};
+    for (const row of photosResult.rows) {
+      const sId = row.service_id as string;
+      if (!photosByService[sId]) photosByService[sId] = [];
+      photosByService[sId].push({
+        id: row.id as string,
+        url: row.url as string,
+        title: row.title as string
+      });
+    }
+
+    return servicesResult.rows.map(row => ({
+      id: row.id as string,
       name: row.name as string,
       icon: row.icon as string,
       description: row.description as string,
       price: row.price as string,
       duration: row.duration as string,
-      images: row.images ? JSON.parse(row.images as string) : undefined
+      photos: photosByService[row.id as string] || []
     }));
   } catch (err) {
     console.error('Error getting services:', err);
@@ -296,11 +341,20 @@ export async function saveServices(services: Service[]): Promise<boolean> {
     const tx = await client.transaction("write");
     try {
       await tx.execute("DELETE FROM services");
+      await tx.execute("DELETE FROM services_photos");
       for (const s of services) {
         await tx.execute({
-          sql: "INSERT INTO services (name, icon, description, price, duration, images) VALUES (?, ?, ?, ?, ?, ?)",
-          args: [s.name, s.icon, s.description, s.price, s.duration, JSON.stringify(s.images || [])]
+          sql: "INSERT INTO services (id, name, icon, description, price, duration) VALUES (?, ?, ?, ?, ?, ?)",
+          args: [s.id, s.name, s.icon, s.description, s.price, s.duration]
         });
+        if (s.photos && s.photos.length > 0) {
+          for (const p of s.photos) {
+            await tx.execute({
+              sql: "INSERT INTO services_photos (id, service_id, url, title) VALUES (?, ?, ?, ?)",
+              args: [p.id, s.id, p.url, p.title]
+            });
+          }
+        }
       }
       await tx.commit();
       return true;

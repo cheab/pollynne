@@ -19,7 +19,8 @@ import {
   AlertCircle,
   X,
   PlusCircle,
-  Scissors
+  Scissors,
+  UploadCloud
 } from 'lucide-react'
 
 const InstagramIcon = ({ size = 16, className = '' }: { size?: number; className?: string }) => (
@@ -42,13 +43,20 @@ const InstagramIcon = ({ size = 16, className = '' }: { size?: number; className
 )
 
 // Types matched with lib/db.ts
+interface ServicePhoto {
+  id: string;
+  url: string;
+  title: string;
+}
+
 interface Service {
-  icon: string
-  name: string
-  description: string
-  price: string
-  duration: string
-  images?: string[]
+  id: string;
+  icon: string;
+  name: string;
+  description: string;
+  price: string;
+  duration: string;
+  photos?: ServicePhoto[];
 }
 
 interface Combo {
@@ -122,14 +130,17 @@ export default function AdminPage() {
   // Service form state (for editing/creating)
   const [editingServiceIndex, setEditingServiceIndex] = useState<number | null>(null) // null = not editing, -1 = creating new
   const [serviceForm, setServiceForm] = useState<Service>({
+    id: '',
     icon: '○',
     name: '',
     description: '',
     price: '',
     duration: '',
-    images: []
+    photos: []
   })
   const [imageInput, setImageInput] = useState('')
+  const [photoTitleInput, setPhotoTitleInput] = useState('')
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
 
   // Check authentication on load
   useEffect(() => {
@@ -334,21 +345,24 @@ export default function AdminPage() {
   // Services CRUD
   const startEditingService = (index: number) => {
     setEditingServiceIndex(index)
-    setServiceForm({ ...services[index] })
+    setServiceForm(services[index])
     setImageInput('')
+    setPhotoTitleInput('')
   }
 
   const startCreatingService = () => {
     setEditingServiceIndex(-1)
     setServiceForm({
+      id: crypto.randomUUID(),
       icon: '○',
       name: '',
       description: '',
       price: '',
       duration: '',
-      images: []
+      photos: []
     })
     setImageInput('')
+    setPhotoTitleInput('')
   }
 
   const handleSaveServiceForm = async (e: React.FormEvent) => {
@@ -380,11 +394,52 @@ export default function AdminPage() {
     }
   }
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingImage(true)
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name, contentType: file.type })
+      })
+      if (!res.ok) throw new Error('Falha ao preparar upload')
+      
+      const { presignedUrl, publicUrl } = await res.json()
+
+      const uploadRes = await fetch(presignedUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type,
+        },
+        body: file,
+      })
+
+      if (!uploadRes.ok) throw new Error('Falha ao enviar arquivo')
+
+      setServiceForm(prev => ({
+        ...prev,
+        photos: [...(prev.photos || []), { id: crypto.randomUUID(), url: publicUrl, title: photoTitleInput.trim() || file.name }]
+      }))
+      
+      showToast('Imagem enviada com sucesso', 'success')
+    } catch (err) {
+      console.error(err)
+      showToast('Erro ao fazer upload da imagem', 'error')
+    } finally {
+      setIsUploadingImage(false)
+      e.target.value = ''
+      setPhotoTitleInput('')
+    }
+  }
+
   const addImageUrl = () => {
     if (!imageInput.trim()) return
     setServiceForm(prev => ({
       ...prev,
-      images: [...(prev.images || []), imageInput.trim()]
+      photos: [...(prev.photos || []), { id: crypto.randomUUID(), url: imageInput.trim(), title: photoTitleInput.trim() || 'Nova Imagem' }]
     }))
     setImageInput('')
   }
@@ -392,7 +447,7 @@ export default function AdminPage() {
   const removeImageUrl = (urlIndex: number) => {
     setServiceForm(prev => ({
       ...prev,
-      images: (prev.images || []).filter((_, i) => i !== urlIndex)
+      photos: (prev.photos || []).filter((_, i: number) => i !== urlIndex)
     }))
   }
 
@@ -776,7 +831,54 @@ export default function AdminPage() {
                     <label className="block text-xs font-semibold text-gray uppercase tracking-wider mb-3">
                       Fotos do Portfólio (Carrossel da Galeria)
                     </label>
+
+                    <div className="mb-4">
+                      <label className="block text-[10px] font-semibold text-gray uppercase mb-1.5">
+                        Título da Foto (Texto Alternativo)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Sobrancelha fio a fio natural"
+                        value={photoTitleInput}
+                        onChange={(e) => setPhotoTitleInput(e.target.value)}
+                        className="w-full py-2.5 px-4 rounded-xl border border-beige/60 bg-white focus:border-dark focus:ring-1 focus:ring-dark outline-none transition-all text-sm mb-2"
+                      />
+                      <p className="text-[10px] text-gray/60 leading-tight">
+                        Defina o título antes de fazer o upload ou adicionar a URL. Caso deixe vazio, usaremos o nome do arquivo.
+                      </p>
+                    </div>
                     
+                    <div className="flex flex-col gap-4 mb-6 p-4 border border-dashed border-neutral-300 rounded-xl bg-white text-center hover:bg-neutral-50 transition-colors relative">
+                      {isUploadingImage ? (
+                        <div className="flex flex-col items-center justify-center py-2 text-beige">
+                          <Loader2 size={24} className="animate-spin mb-2" />
+                          <span className="text-sm font-medium">Enviando imagem...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex justify-center mb-1">
+                            <UploadCloud size={28} className="text-gray" />
+                          </div>
+                          <div>
+                            <span className="text-sm font-semibold text-dark">Clique para enviar uma foto</span>
+                            <p className="text-xs text-gray mt-1">Formatos suportados: JPG, PNG, WEBP</p>
+                          </div>
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={handleImageUpload}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                        </>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="h-px bg-neutral-200 flex-grow"></div>
+                      <span className="text-[10px] uppercase font-bold text-gray/50 tracking-wider">OU COLAR URL</span>
+                      <div className="h-px bg-neutral-200 flex-grow"></div>
+                    </div>
+
                     <div className="flex gap-3 mb-4">
                       <input
                         type="text"
@@ -796,14 +898,17 @@ export default function AdminPage() {
                     </div>
 
                     {/* Display current image URLs */}
-                    {serviceForm.images && serviceForm.images.length > 0 ? (
+                    {serviceForm.photos && serviceForm.photos.length > 0 ? (
                       <div className="space-y-2">
-                        {serviceForm.images.map((url, uIdx) => (
+                        {serviceForm.photos.map((photo, uIdx) => (
                           <div
                             key={uIdx}
                             className="flex items-center justify-between gap-4 bg-white border border-neutral-200/80 rounded-xl p-2.5 text-xs text-gray font-medium"
                           >
-                            <span className="truncate">{url}</span>
+                            <div className="flex flex-col truncate">
+                              <span className="font-semibold text-dark truncate">{photo.title}</span>
+                              <span className="truncate text-[10px] text-gray/70">{photo.url}</span>
+                            </div>
                             <button
                               type="button"
                               onClick={() => removeImageUrl(uIdx)}
