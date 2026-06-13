@@ -8,7 +8,9 @@ import {
   getAddress,
   saveAddress,
   getSettings,
-  saveSettings
+  saveSettings,
+  getHeroPhotos,
+  saveHeroPhotos
 } from '@/lib/db'
 
 async function isAuthenticated() {
@@ -23,8 +25,9 @@ export async function GET() {
     const combos = await getCombos()
     const address = await getAddress()
     const settings = await getSettings()
+    const heroPhotos = await getHeroPhotos()
 
-    return NextResponse.json({ services, combos, address, settings })
+    return NextResponse.json({ services, combos, address, settings, heroPhotos })
   } catch (error) {
     return NextResponse.json({ error: 'Erro ao carregar os dados' }, { status: 500 })
   }
@@ -48,7 +51,11 @@ export async function POST(request: Request) {
       await saveAddress(data)
       return NextResponse.json({ success: true })
     } else if (type === 'settings') {
-      await saveSettings(data)
+      await saveSettings(data.settings)
+      if (data.heroPhotos) await saveHeroPhotos(data.heroPhotos)
+      return NextResponse.json({ success: true })
+    } else if (type === 'hero') {
+      await saveHeroPhotos(data.heroPhotos)
       return NextResponse.json({ success: true })
     }
 

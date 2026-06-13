@@ -7,16 +7,17 @@ import Gallery from '@/components/Gallery'
 import LocationMap from '@/components/LocationMap'
 import FloatingWhatsApp from '@/components/FloatingWhatsApp'
 import Footer from '@/components/Footer'
-import { getServices, getCombos, getAddress, getSettings } from '@/lib/db'
+import { getServices, getCombos, getAddress, getSettings, getHeroPhotos } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  const [services, combos, address, settings] = await Promise.all([
+  const [services, combos, address, settings, heroPhotos] = await Promise.all([
     getServices(),
     getCombos(),
     getAddress(),
-    getSettings()
+    getSettings(),
+    getHeroPhotos()
   ])
 
   let instagramPosts = []
@@ -40,7 +41,7 @@ export default async function Home() {
       <Header settings={settings} />
       <FloatingWhatsApp settings={settings} />
       <main>
-        <HeroCarousel settings={settings} />
+        <HeroCarousel settings={settings} photos={heroPhotos} />
         {instagramPosts.length > 0 && (
           <InstagramFeed posts={instagramPosts} nickname={settings?.instagramNickname} />
         )}

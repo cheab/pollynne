@@ -20,7 +20,10 @@ import {
   X,
   PlusCircle,
   Scissors,
-  UploadCloud
+  UploadCloud,
+  Image as ImageIcon,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react'
 
 const InstagramIcon = ({ size = 16, className = '' }: { size?: number; className?: string }) => (
@@ -43,6 +46,13 @@ const InstagramIcon = ({ size = 16, className = '' }: { size?: number; className
 )
 
 // Types matched with lib/db.ts
+export interface HeroPhoto {
+  id: string;
+  url: string;
+  title: string;
+  sequence: number;
+}
+
 interface ServicePhoto {
   id: string;
   url: string;
@@ -121,7 +131,10 @@ export default function AdminPage() {
   })
 
   // UI state
-  const [activeTab, setActiveTab] = useState<'services' | 'combos' | 'address' | 'settings' | 'social'>('services')
+  const [activeTab, setActiveTab] = useState<'services' | 'combos' | 'address' | 'settings' | 'social' | 'hero'>('services')
+  const [heroPhotos, setHeroPhotos] = useState<HeroPhoto[]>([])
+  const [isUploadingHero, setIsUploadingHero] = useState(false)
+  const [heroPhotoTitleInput, setHeroPhotoTitleInput] = useState('')
   const [isLoadingData, setIsLoadingData] = useState(false)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [instagramPreview, setInstagramPreview] = useState<any[]>([])
@@ -186,6 +199,7 @@ export default function AdminPage() {
         setServices(data.services || [])
         setCombos(data.combos || [])
         setAddress(data.address || { rua: '', numero: '', bairro: '', cidade: '', estado: '', cep: '' })
+        if (data.heroPhotos) setHeroPhotos(data.heroPhotos)
         setSettings({
           whatsapp: data.settings?.whatsapp || '',
           phone: data.settings?.phone || '',
@@ -245,12 +259,16 @@ export default function AdminPage() {
     }
   }
 
-  const handleSaveData = async (type: 'services' | 'combos' | 'address' | 'settings', payload: any) => {
+  const handleSaveData = async (type: 'services' | 'combos' | 'address' | 'settings' | 'hero', payload: any) => {
     try {
+      let dataToSave = payload;
+      if (type === 'settings') dataToSave = { settings: payload };
+      else if (type === 'hero') dataToSave = { heroPhotos: payload };
+
       const res = await fetch('/api/admin/data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, data: payload })
+        body: JSON.stringify({ type, data: dataToSave })
       })
 
       if (res.ok) {
@@ -270,6 +288,56 @@ export default function AdminPage() {
       showToast('Erro ao conectar ao servidor', 'error')
       return false;
     }
+  }
+
+  const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingHero(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('folder', 'hero')
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!res.ok) throw new Error('Falha ao enviar arquivo')
+
+      const { publicUrl } = await res.json()
+      const newPhoto = {
+        id: crypto.randomUUID(),
+        url: publicUrl,
+        title: heroPhotoTitleInput.trim() || file.name,
+        sequence: heroPhotos.length + 1
+      }
+
+      await handleSaveData('hero', [...heroPhotos, newPhoto])
+      setHeroPhotoTitleInput('')
+    } catch (err) {
+      showToast('Erro ao fazer upload da imagem', 'error')
+    } finally {
+      setIsUploadingHero(false)
+      e.target.value = ''
+    }
+  }
+
+  const handleRemoveHeroPhoto = async (index: number) => {
+    const updated = heroPhotos.filter((_, i) => i !== index).map((p, i) => ({ ...p, sequence: i + 1 }))
+    await handleSaveData('hero', updated)
+  }
+
+  const handleMoveHeroPhoto = async (index: number, direction: 'up' | 'down') => {
+    const updated = [...heroPhotos]
+    const targetIdx = direction === 'up' ? index - 1 : index + 1
+    const temp = updated[index]
+    updated[index] = updated[targetIdx]
+    updated[targetIdx] = temp
+    const reordered = updated.map((p, i) => ({ ...p, sequence: i + 1 }))
+    await handleSaveData('hero', reordered)
   }
 
   // Address logic (CEP lookup via ViaCEP)
@@ -409,7 +477,7 @@ export default function AdminPage() {
         method: 'POST',
         body: formData
       })
-      
+
       if (!res.ok) throw new Error('Falha ao enviar arquivo')
 
       const { publicUrl } = await res.json()
@@ -610,11 +678,23 @@ export default function AdminPage() {
       <div className="flex-grow flex flex-col md:flex-row max-w-7xl w-full mx-auto p-4 md:p-8 gap-8">
         {/* Sidebar Navigation */}
         <aside className="md:w-64 shrink-0 space-y-2">
+
+          <button
+            onClick={() => { setActiveTab('hero'); setEditingServiceIndex(null); }}
+            className={`w-full text-left py-3.5 px-4 rounded-2xl font-medium text-sm flex items-center gap-3 transition-all duration-300 ${activeTab === 'hero'
+              ? 'bg-dark text-white shadow-md'
+              : 'bg-white hover:bg-neutral-100 text-gray hover:text-dark border border-neutral-200/60'
+              }`}
+          >
+            <ImageIcon size={18} className={activeTab === 'hero' ? 'text-white' : 'text-gray'} />
+            Fotos da Capa
+          </button>
+
           <button
             onClick={() => { setActiveTab('services'); setEditingServiceIndex(null); }}
             className={`w-full text-left py-3.5 px-4 rounded-2xl font-medium text-sm flex items-center gap-3 transition-all duration-300 ${activeTab === 'services'
-                ? 'bg-dark text-white shadow-md'
-                : 'bg-white hover:bg-neutral-100 text-gray hover:text-dark border border-neutral-200/60'
+              ? 'bg-dark text-white shadow-md'
+              : 'bg-white hover:bg-neutral-100 text-gray hover:text-dark border border-neutral-200/60'
               }`}
           >
             <Scissors size={18} />
@@ -623,8 +703,8 @@ export default function AdminPage() {
           <button
             onClick={() => { setActiveTab('combos'); setEditingServiceIndex(null); }}
             className={`w-full text-left py-3.5 px-4 rounded-2xl font-medium text-sm flex items-center gap-3 transition-all duration-300 ${activeTab === 'combos'
-                ? 'bg-dark text-white shadow-md'
-                : 'bg-white hover:bg-neutral-100 text-gray hover:text-dark border border-neutral-200/60'
+              ? 'bg-dark text-white shadow-md'
+              : 'bg-white hover:bg-neutral-100 text-gray hover:text-dark border border-neutral-200/60'
               }`}
           >
             <Sparkles size={18} />
@@ -633,8 +713,8 @@ export default function AdminPage() {
           <button
             onClick={() => { setActiveTab('address'); setEditingServiceIndex(null); }}
             className={`w-full text-left py-3.5 px-4 rounded-2xl font-medium text-sm flex items-center gap-3 transition-all duration-300 ${activeTab === 'address'
-                ? 'bg-dark text-white shadow-md'
-                : 'bg-white hover:bg-neutral-100 text-gray hover:text-dark border border-neutral-200/60'
+              ? 'bg-dark text-white shadow-md'
+              : 'bg-white hover:bg-neutral-100 text-gray hover:text-dark border border-neutral-200/60'
               }`}
           >
             <MapPin size={18} />
@@ -643,8 +723,8 @@ export default function AdminPage() {
           <button
             onClick={() => { setActiveTab('settings'); setEditingServiceIndex(null); }}
             className={`w-full text-left py-3.5 px-4 rounded-2xl font-medium text-sm flex items-center gap-3 transition-all duration-300 ${activeTab === 'settings'
-                ? 'bg-dark text-white shadow-md'
-                : 'bg-white hover:bg-neutral-100 text-gray hover:text-dark border border-neutral-200/60'
+              ? 'bg-dark text-white shadow-md'
+              : 'bg-white hover:bg-neutral-100 text-gray hover:text-dark border border-neutral-200/60'
               }`}
           >
             <Clock size={18} />
@@ -653,8 +733,8 @@ export default function AdminPage() {
           <button
             onClick={() => { setActiveTab('social'); setEditingServiceIndex(null); }}
             className={`w-full text-left py-3.5 px-4 rounded-2xl font-medium text-sm flex items-center gap-3 transition-all duration-300 ${activeTab === 'social'
-                ? 'bg-dark text-white shadow-md'
-                : 'bg-white hover:bg-neutral-100 text-gray hover:text-dark border border-neutral-200/60'
+              ? 'bg-dark text-white shadow-md'
+              : 'bg-white hover:bg-neutral-100 text-gray hover:text-dark border border-neutral-200/60'
               }`}
           >
             <InstagramIcon size={18} className={activeTab === 'social' ? 'text-white' : 'text-gray'} />
@@ -664,6 +744,108 @@ export default function AdminPage() {
 
         {/* Content Area */}
         <main className="flex-grow bg-white border border-neutral-200/70 rounded-3xl p-6 md:p-8 shadow-sm">
+
+          {/* Hero Tab */}
+          {activeTab === 'hero' && (
+            <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-neutral-200 animate-fade-in space-y-8">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h2 className="font-display font-bold text-2xl text-dark">Fotos da Capa (Carrossel)</h2>
+                  <p className="text-gray text-sm mt-1">Gerencie as imagens de destaque da página inicial</p>
+                </div>
+              </div>
+
+              <div className="bg-neutral-50 rounded-2xl p-6 border border-neutral-200/60">
+                <h3 className="font-semibold text-dark text-sm uppercase tracking-wider mb-4">Adicionar Nova Foto</h3>
+
+                <div className="flex flex-col gap-4">
+                  <input
+                    type="text"
+                    placeholder="Título da foto (Opcional - Ex: Estúdio Principal)"
+                    value={heroPhotoTitleInput}
+                    onChange={(e) => setHeroPhotoTitleInput(e.target.value)}
+                    className="w-full py-2.5 px-4 rounded-xl border border-beige/60 bg-white focus:border-dark focus:ring-1 focus:ring-dark outline-none transition-all text-sm"
+                  />
+
+                  <div className="flex flex-col gap-4 p-4 border border-dashed border-neutral-300 rounded-xl bg-white text-center hover:bg-neutral-50 transition-colors relative">
+                    {isUploadingHero ? (
+                      <div className="flex flex-col items-center justify-center py-2 text-beige">
+                        <div className="w-6 h-6 border-2 border-beige border-t-transparent rounded-full animate-spin mb-2"></div>
+                        <span className="text-sm font-medium">Enviando foto...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="py-4">
+                          <ImageIcon size={24} className="text-beige mx-auto mb-2" />
+                          <span className="text-sm font-semibold text-dark">Clique para enviar uma foto</span>
+                          <p className="text-xs text-gray mt-1">Sobe direto pro R2 e entra no carrossel</p>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleHeroImageUpload}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="font-semibold text-dark text-sm uppercase tracking-wider">Fotos Atuais no Carrossel</h3>
+
+                {heroPhotos.length === 0 ? (
+                  <div className="text-center py-8 text-gray bg-neutral-50 rounded-2xl border border-neutral-200 border-dashed">
+                    Nenhuma foto adicionada.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {heroPhotos.map((photo, index) => (
+                      <div key={photo.id} className="relative group bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-sm">
+                        <div className="aspect-[4/3] w-full relative bg-neutral-100">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={photo.url} alt={photo.title} className="w-full h-full object-cover" />
+
+                          {/* Actions overlay */}
+                          <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => handleMoveHeroPhoto(index, 'up')}
+                              disabled={index === 0}
+                              className="p-1.5 bg-white/90 backdrop-blur rounded-lg text-dark hover:bg-white disabled:opacity-50"
+                            >
+                              <ArrowUp size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleMoveHeroPhoto(index, 'down')}
+                              disabled={index === heroPhotos.length - 1}
+                              className="p-1.5 bg-white/90 backdrop-blur rounded-lg text-dark hover:bg-white disabled:opacity-50"
+                            >
+                              <ArrowDown size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleRemoveHeroPhoto(index)}
+                              className="p-1.5 bg-red-500/90 backdrop-blur rounded-lg text-white hover:bg-red-600 mt-1"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+
+                          <div className="absolute top-2 left-2 bg-dark/80 backdrop-blur text-white text-xs font-bold px-2 py-1 rounded-lg">
+                            #{photo.sequence}
+                          </div>
+                        </div>
+                        <div className="p-3">
+                          <p className="text-sm font-semibold text-dark truncate">{photo.title}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Services Tab */}
           {activeTab === 'services' && (
             <div>
@@ -1008,8 +1190,8 @@ export default function AdminPage() {
                                 key={sIdx}
                                 onClick={() => handleToggleServiceInCombo(comboIdx, service.id)}
                                 className={`flex items-center justify-between p-3 rounded-xl border text-left text-xs font-medium transition-all ${isChecked
-                                    ? 'border-dark bg-dark/5 text-dark ring-1 ring-dark'
-                                    : 'border-neutral-200 bg-white text-gray hover:bg-neutral-50 hover:border-neutral-300'
+                                  ? 'border-dark bg-dark/5 text-dark ring-1 ring-dark'
+                                  : 'border-neutral-200 bg-white text-gray hover:bg-neutral-50 hover:border-neutral-300'
                                   }`}
                               >
                                 <span className="truncate pr-2">{service.name}</span>

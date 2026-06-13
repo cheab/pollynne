@@ -6,20 +6,7 @@ import Image from "next/image";
 import LogoTipo from "./LogoTipo";
 import { ChevronDown } from "lucide-react";
 
-const getHeroImage = (num: number) => {
-  const baseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL?.replace(/\/$/, '') || '';
-  return `${baseUrl}/hero/hero${num}.jpg`;
-};
-
-const images = [
-  getHeroImage(1),
-  getHeroImage(2),
-  getHeroImage(3),
-  getHeroImage(4),
-  getHeroImage(5),
-  getHeroImage(6),
-  getHeroImage(7),
-];
+import { HeroPhoto } from '@/lib/db';
 
 const variants = {
   enter: (direction: number) => {
@@ -49,7 +36,8 @@ interface Settings {
   slogan?: string
 }
 
-export default function HeroCarousel({ settings }: { settings?: Settings }) {
+export default function HeroCarousel({ settings, photos }: { settings?: Settings, photos: HeroPhoto[] }) {
+  const images = photos.length > 0 ? photos.map(p => p.url) : ['/hero/hero1.jpg']; // Fallback
   const [[page, direction], setPage] = useState([0, 0]);
 
   // Infinite carousel logic
