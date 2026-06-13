@@ -60,6 +60,7 @@ interface Service {
 }
 
 interface Combo {
+  id: string;
   name: string
   price: string
   services: string[]
@@ -400,30 +401,24 @@ export default function AdminPage() {
 
     setIsUploadingImage(true)
     try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('folder', 'servicos')
+
       const res = await fetch('/api/upload', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: file.name, contentType: file.type })
+        body: formData
       })
-      if (!res.ok) throw new Error('Falha ao preparar upload')
       
-      const { presignedUrl, publicUrl } = await res.json()
+      if (!res.ok) throw new Error('Falha ao enviar arquivo')
 
-      const uploadRes = await fetch(presignedUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': file.type,
-        },
-        body: file,
-      })
-
-      if (!uploadRes.ok) throw new Error('Falha ao enviar arquivo')
+      const { publicUrl } = await res.json()
 
       setServiceForm(prev => ({
         ...prev,
         photos: [...(prev.photos || []), { id: crypto.randomUUID(), url: publicUrl, title: photoTitleInput.trim() || file.name }]
       }))
-      
+
       showToast('Imagem enviada com sucesso', 'success')
     } catch (err) {
       console.error(err)
@@ -456,28 +451,28 @@ export default function AdminPage() {
     const updated = [...combos]
     // Ensure the combo object exists
     if (!updated[comboIndex]) {
-      updated[comboIndex] = { name: '', price: '', services: [] }
+      updated[comboIndex] = { id: crypto.randomUUID(), name: '', price: '', services: [] }
     }
     updated[comboIndex] = { ...updated[comboIndex], [field]: value }
     setCombos(updated)
   }
 
-  const handleToggleServiceInCombo = (comboIndex: number, serviceName: string) => {
+  const handleToggleServiceInCombo = (comboIndex: number, serviceId: string) => {
     const updated = [...combos]
     if (!updated[comboIndex]) {
-      updated[comboIndex] = { name: '', price: '', services: [] }
+      updated[comboIndex] = { id: crypto.randomUUID(), name: '', price: '', services: [] }
     }
     const currentServices = updated[comboIndex].services || []
     let nextServices = []
 
-    if (currentServices.includes(serviceName)) {
-      nextServices = currentServices.filter(s => s !== serviceName)
+    if (currentServices.includes(serviceId)) {
+      nextServices = currentServices.filter(s => s !== serviceId)
     } else {
       if (currentServices.length >= 4) {
         showToast('Um combo pode ter no máximo 4 serviços', 'error')
         return
       }
-      nextServices = [...currentServices, serviceName]
+      nextServices = [...currentServices, serviceId]
     }
 
     updated[comboIndex] = { ...updated[comboIndex], services: nextServices }
@@ -488,9 +483,9 @@ export default function AdminPage() {
     e.preventDefault()
     // Make sure we have exactly 3 combos
     const finalizedCombos = [
-      combos[0] || { name: 'Combo 1', price: 'R$ 0,00', services: [] },
-      combos[1] || { name: 'Combo 2', price: 'R$ 0,00', services: [] },
-      combos[2] || { name: 'Combo 3', price: 'R$ 0,00', services: [] }
+      combos[0] || { id: crypto.randomUUID(), name: 'Combo 1', price: 'R$ 0,00', services: [] },
+      combos[1] || { id: crypto.randomUUID(), name: 'Combo 2', price: 'R$ 0,00', services: [] },
+      combos[2] || { id: crypto.randomUUID(), name: 'Combo 3', price: 'R$ 0,00', services: [] }
     ]
     handleSaveData('combos', finalizedCombos)
   }
@@ -580,9 +575,8 @@ export default function AdminPage() {
 
         {/* Global Toast */}
         {toast && (
-          <div className={`fixed bottom-4 right-4 z-50 p-4 rounded-2xl flex items-center gap-3 shadow-lg border animate-slide-in ${
-            toast.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-red-50 border-red-100 text-red-800'
-          }`}>
+          <div className={`fixed bottom-4 right-4 z-50 p-4 rounded-2xl flex items-center gap-3 shadow-lg border animate-slide-in ${toast.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-red-50 border-red-100 text-red-800'
+            }`}>
             {toast.type === 'success' ? <Check size={18} /> : <AlertCircle size={18} />}
             <span className="text-sm font-medium">{toast.message}</span>
           </div>
@@ -618,55 +612,50 @@ export default function AdminPage() {
         <aside className="md:w-64 shrink-0 space-y-2">
           <button
             onClick={() => { setActiveTab('services'); setEditingServiceIndex(null); }}
-            className={`w-full text-left py-3.5 px-4 rounded-2xl font-medium text-sm flex items-center gap-3 transition-all duration-300 ${
-              activeTab === 'services'
+            className={`w-full text-left py-3.5 px-4 rounded-2xl font-medium text-sm flex items-center gap-3 transition-all duration-300 ${activeTab === 'services'
                 ? 'bg-dark text-white shadow-md'
                 : 'bg-white hover:bg-neutral-100 text-gray hover:text-dark border border-neutral-200/60'
-            }`}
+              }`}
           >
             <Scissors size={18} />
             Serviços
           </button>
           <button
             onClick={() => { setActiveTab('combos'); setEditingServiceIndex(null); }}
-            className={`w-full text-left py-3.5 px-4 rounded-2xl font-medium text-sm flex items-center gap-3 transition-all duration-300 ${
-              activeTab === 'combos'
+            className={`w-full text-left py-3.5 px-4 rounded-2xl font-medium text-sm flex items-center gap-3 transition-all duration-300 ${activeTab === 'combos'
                 ? 'bg-dark text-white shadow-md'
                 : 'bg-white hover:bg-neutral-100 text-gray hover:text-dark border border-neutral-200/60'
-            }`}
+              }`}
           >
             <Sparkles size={18} />
             Combos
           </button>
           <button
             onClick={() => { setActiveTab('address'); setEditingServiceIndex(null); }}
-            className={`w-full text-left py-3.5 px-4 rounded-2xl font-medium text-sm flex items-center gap-3 transition-all duration-300 ${
-              activeTab === 'address'
+            className={`w-full text-left py-3.5 px-4 rounded-2xl font-medium text-sm flex items-center gap-3 transition-all duration-300 ${activeTab === 'address'
                 ? 'bg-dark text-white shadow-md'
                 : 'bg-white hover:bg-neutral-100 text-gray hover:text-dark border border-neutral-200/60'
-            }`}
+              }`}
           >
             <MapPin size={18} />
             Endereço
           </button>
           <button
             onClick={() => { setActiveTab('settings'); setEditingServiceIndex(null); }}
-            className={`w-full text-left py-3.5 px-4 rounded-2xl font-medium text-sm flex items-center gap-3 transition-all duration-300 ${
-              activeTab === 'settings'
+            className={`w-full text-left py-3.5 px-4 rounded-2xl font-medium text-sm flex items-center gap-3 transition-all duration-300 ${activeTab === 'settings'
                 ? 'bg-dark text-white shadow-md'
                 : 'bg-white hover:bg-neutral-100 text-gray hover:text-dark border border-neutral-200/60'
-            }`}
+              }`}
           >
             <Clock size={18} />
             Horários & Contato
           </button>
           <button
             onClick={() => { setActiveTab('social'); setEditingServiceIndex(null); }}
-            className={`w-full text-left py-3.5 px-4 rounded-2xl font-medium text-sm flex items-center gap-3 transition-all duration-300 ${
-              activeTab === 'social'
+            className={`w-full text-left py-3.5 px-4 rounded-2xl font-medium text-sm flex items-center gap-3 transition-all duration-300 ${activeTab === 'social'
                 ? 'bg-dark text-white shadow-md'
                 : 'bg-white hover:bg-neutral-100 text-gray hover:text-dark border border-neutral-200/60'
-            }`}
+              }`}
           >
             <InstagramIcon size={18} className={activeTab === 'social' ? 'text-white' : 'text-gray'} />
             Redes Sociais
@@ -847,7 +836,7 @@ export default function AdminPage() {
                         Defina o título antes de fazer o upload ou adicionar a URL. Caso deixe vazio, usaremos o nome do arquivo.
                       </p>
                     </div>
-                    
+
                     <div className="flex flex-col gap-4 mb-6 p-4 border border-dashed border-neutral-300 rounded-xl bg-white text-center hover:bg-neutral-50 transition-colors relative">
                       {isUploadingImage ? (
                         <div className="flex flex-col items-center justify-center py-2 text-beige">
@@ -863,16 +852,16 @@ export default function AdminPage() {
                             <span className="text-sm font-semibold text-dark">Clique para enviar uma foto</span>
                             <p className="text-xs text-gray mt-1">Formatos suportados: JPG, PNG, WEBP</p>
                           </div>
-                          <input 
-                            type="file" 
-                            accept="image/*" 
+                          <input
+                            type="file"
+                            accept="image/*"
                             onChange={handleImageUpload}
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                           />
                         </>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center gap-2 mb-4">
                       <div className="h-px bg-neutral-200 flex-grow"></div>
                       <span className="text-[10px] uppercase font-bold text-gray/50 tracking-wider">OU COLAR URL</span>
@@ -882,7 +871,7 @@ export default function AdminPage() {
                     <div className="flex gap-3 mb-4">
                       <input
                         type="text"
-                        placeholder="Cole a URL de uma foto (Ex: /catalog/Design-premium.jpg)"
+                        placeholder="Cole a URL de uma foto"
                         value={imageInput}
                         onChange={(e) => setImageInput(e.target.value)}
                         className="flex-grow py-2.5 px-4 rounded-xl border border-beige/60 bg-white focus:border-dark focus:ring-1 focus:ring-dark outline-none transition-all text-sm"
@@ -1012,17 +1001,16 @@ export default function AdminPage() {
                         </label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                           {services.map((service, sIdx) => {
-                            const isChecked = (combo.services || []).includes(service.name)
+                            const isChecked = (combo.services || []).includes(service.id)
                             return (
                               <button
                                 type="button"
                                 key={sIdx}
-                                onClick={() => handleToggleServiceInCombo(comboIdx, service.name)}
-                                className={`flex items-center justify-between p-3 rounded-xl border text-left text-xs font-medium transition-all ${
-                                  isChecked
+                                onClick={() => handleToggleServiceInCombo(comboIdx, service.id)}
+                                className={`flex items-center justify-between p-3 rounded-xl border text-left text-xs font-medium transition-all ${isChecked
                                     ? 'border-dark bg-dark/5 text-dark ring-1 ring-dark'
                                     : 'border-neutral-200 bg-white text-gray hover:bg-neutral-50 hover:border-neutral-300'
-                                }`}
+                                  }`}
                               >
                                 <span className="truncate pr-2">{service.name}</span>
                                 {isChecked && <Check size={14} className="shrink-0 text-dark" />}
@@ -1031,7 +1019,7 @@ export default function AdminPage() {
                           })}
                         </div>
                         <div className="mt-2.5 text-[10px] text-gray italic">
-                          Selecionados: { (combo.services || []).length } de 4
+                          Selecionados: {(combo.services || []).length} de 4
                         </div>
                       </div>
                     </div>
@@ -1378,9 +1366,8 @@ export default function AdminPage() {
 
       {/* Global Toast */}
       {toast && (
-        <div className={`fixed bottom-4 right-4 z-50 p-4 rounded-2xl flex items-center gap-3 shadow-xl border animate-slide-in ${
-          toast.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-red-50 border-red-100 text-red-800'
-        }`}>
+        <div className={`fixed bottom-4 right-4 z-50 p-4 rounded-2xl flex items-center gap-3 shadow-xl border animate-slide-in ${toast.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-red-50 border-red-100 text-red-800'
+          }`}>
           {toast.type === 'success' ? <Check size={18} /> : <AlertCircle size={18} />}
           <span className="text-sm font-medium">{toast.message}</span>
         </div>

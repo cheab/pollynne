@@ -1,44 +1,50 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { filename, contentType } = body;
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+    const folder = formData.get('folder') as string || '';
 
-    if (!filename || !contentType) {
-      return NextResponse.json({ error: 'Missing filename or contentType' }, { status: 400 });
+    if (!file) {
+      return NextResponse.json({ error: 'Nenhum arquivo enviado' }, { status: 400 });
     }
 
     const S3 = new S3Client({
       region: 'auto',
       endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      forcePathStyle: true,
       credentials: {
         accessKeyId: process.env.R2_ACCESS_KEY_ID!,
         secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
       },
     });
 
-    // Make filename unique
-    const uniqueFilename = `${Date.now()}-${filename.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    // Make filename unique and prepend folder if specified
+    const sanitizedFilename = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const uniqueFilename = `${Date.now()}-${sanitizedFilename}`;
+    const key = folder ? `${folder.replace(/^\/|\/$/g, '')}/${uniqueFilename}` : uniqueFilename;
 
     const command = new PutObjectCommand({
       Bucket: process.env.R2_BUCKET_NAME!,
-      Key: uniqueFilename,
-      ContentType: contentType,
+      Key: key,
+      ContentType: file.type,
+      Body: buffer,
     });
 
-    const presignedUrl = await getSignedUrl(S3, command, { expiresIn: 3600 });
+    await S3.send(command);
     
     // Construct the public URL
-    // Remove trailing slash if present
     const publicUrlBase = process.env.NEXT_PUBLIC_R2_PUBLIC_URL?.replace(/\/$/, '');
-    const publicUrl = `${publicUrlBase}/${uniqueFilename}`;
+    const publicUrl = `${publicUrlBase}/${key}`;
 
-    return NextResponse.json({ presignedUrl, publicUrl });
+    return NextResponse.json({ publicUrl });
   } catch (error) {
-    console.error('Error generating presigned URL:', error);
-    return NextResponse.json({ error: 'Error generating presigned URL' }, { status: 500 });
+    console.error('Error uploading file to R2:', error);
+    return NextResponse.json({ error: 'Erro interno ao fazer upload da imagem' }, { status: 500 });
   }
 }

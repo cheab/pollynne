@@ -18,9 +18,10 @@ export interface Service {
 }
 
 export interface Combo {
+  id: string;
   name: string;
   price: string;
-  services: string[]; // service names
+  services: string[]; // service IDs
   description?: string;
 }
 
@@ -68,9 +69,9 @@ export const defaultServices: Service[] = [
     price: 'R$ 30,00',
     duration: '40 min',
     photos: [
-      { id: crypto.randomUUID(), url: '/catalog/Design-premium.jpg', title: 'Foto 1' },
-      { id: crypto.randomUUID(), url: '/catalog/Design-premium-.jpg', title: 'Foto 2' },
-      { id: crypto.randomUUID(), url: '/catalog/Design-premium-_1_.jpg', title: 'Foto 3' }
+      { id: crypto.randomUUID(), url: 'https://pub-f40e2bf410d441218a6f81c9fbfe9ea4.r2.dev/servicos/Design-premium.jpg', title: 'Foto 1' },
+      { id: crypto.randomUUID(), url: 'https://pub-f40e2bf410d441218a6f81c9fbfe9ea4.r2.dev/servicos/Design-premium-.jpg', title: 'Foto 2' },
+      { id: crypto.randomUUID(), url: 'https://pub-f40e2bf410d441218a6f81c9fbfe9ea4.r2.dev/servicos/Design-premium-_1_.jpg', title: 'Foto 3' }
     ]
   },
   {
@@ -89,9 +90,9 @@ export const defaultServices: Service[] = [
     price: 'R$ 120,00',
     duration: '4-6 semanas',
     photos: [
-      { id: crypto.randomUUID(), url: '/catalog/Brow-Lamination.jpg', title: 'Foto 1' },
-      { id: crypto.randomUUID(), url: '/catalog/Brow-Lamination-_1_.jpg', title: 'Foto 2' },
-      { id: crypto.randomUUID(), url: '/catalog/Brow-Lamination-e-micro-labial.jpg', title: 'Foto 3' }
+      { id: crypto.randomUUID(), url: 'https://pub-f40e2bf410d441218a6f81c9fbfe9ea4.r2.dev/servicos/Brow-Lamination.jpg', title: 'Foto 1' },
+      { id: crypto.randomUUID(), url: 'https://pub-f40e2bf410d441218a6f81c9fbfe9ea4.r2.dev/servicos/Brow-Lamination-_1_.jpg', title: 'Foto 2' },
+      { id: crypto.randomUUID(), url: 'https://pub-f40e2bf410d441218a6f81c9fbfe9ea4.r2.dev/servicos/Brow-Lamination-e-micro-labial.jpg', title: 'Foto 3' }
     ]
   },
   {
@@ -118,9 +119,9 @@ export const defaultServices: Service[] = [
     price: 'R$ 500,00',
     duration: 'De 1 a 2 anos',
     photos: [
-      { id: crypto.randomUUID(), url: '/catalog/Micro-labial.jpg', title: 'Foto 1' },
-      { id: crypto.randomUUID(), url: '/catalog/Micro-labial-_1_.jpg', title: 'Foto 2' },
-      { id: crypto.randomUUID(), url: '/catalog/Brow-Lamination-e-micro-labial.jpg', title: 'Foto 3' }
+      { id: crypto.randomUUID(), url: 'https://pub-f40e2bf410d441218a6f81c9fbfe9ea4.r2.dev/servicos/Micro-labial.jpg', title: 'Foto 1' },
+      { id: crypto.randomUUID(), url: 'https://pub-f40e2bf410d441218a6f81c9fbfe9ea4.r2.dev/servicos/Micro-labial-_1_.jpg', title: 'Foto 2' },
+      { id: crypto.randomUUID(), url: 'https://pub-f40e2bf410d441218a6f81c9fbfe9ea4.r2.dev/servicos/Brow-Lamination-e-micro-labial.jpg', title: 'Foto 3' }
     ]
   },
   {
@@ -151,18 +152,21 @@ export const defaultServices: Service[] = [
 
 export const defaultCombos: Combo[] = [
   {
+    id: crypto.randomUUID(),
     name: '4 Sessões Hidra Color',
     price: 'R$ 850,00',
     services: ['Hidra Color'],
     description: 'Pacote de hidratação profunda para os lábios'
   },
   {
+    id: crypto.randomUUID(),
     name: 'Brow + Lash',
     price: 'R$ 200,00',
     services: ['Brow Lamination', 'Lash Lifting'],
     description: 'Brow Lamination + Lash lifting com brinde'
   },
   {
+    id: crypto.randomUUID(),
     name: 'Design + Buço',
     price: 'R$ 50,00',
     services: ['Design com Tintura', 'Epilação de Buço'],
@@ -207,10 +211,15 @@ async function initDb() {
       title TEXT NOT NULL
     )`,
     `CREATE TABLE IF NOT EXISTS combos (
-      name TEXT PRIMARY KEY,
+      id TEXT PRIMARY KEY,
+      name TEXT UNIQUE NOT NULL,
       price TEXT NOT NULL,
-      services TEXT NOT NULL,
       description TEXT
+    )`,
+    `CREATE TABLE IF NOT EXISTS combo_services (
+      id TEXT PRIMARY KEY,
+      combo_id TEXT NOT NULL,
+      service_id TEXT NOT NULL
     )`,
     `CREATE TABLE IF NOT EXISTS address (
       id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -259,9 +268,15 @@ async function initDb() {
   if (combosCheck.rows[0].count === 0) {
     for (const c of defaultCombos) {
       await client.execute({
-        sql: "INSERT INTO combos (name, price, services, description) VALUES (?, ?, ?, ?)",
-        args: [c.name, c.price, JSON.stringify(c.services), c.description || '']
+        sql: "INSERT INTO combos (id, name, price, description) VALUES (?, ?, ?, ?)",
+        args: [c.id, c.name, c.price, c.description || '']
       });
+      for (const sId of c.services) {
+        await client.execute({
+          sql: "INSERT INTO combo_services (id, combo_id, service_id) VALUES (?, ?, ?)",
+          args: [crypto.randomUUID(), c.id, sId]
+        });
+      }
     }
   }
 
@@ -308,7 +323,7 @@ export async function getServices(): Promise<Service[]> {
   try {
     const servicesResult = await client.execute("SELECT * FROM services");
     const photosResult = await client.execute("SELECT * FROM services_photos");
-    
+
     const photosByService: Record<string, ServicePhoto[]> = {};
     for (const row of photosResult.rows) {
       const sId = row.service_id as string;
@@ -371,11 +386,21 @@ export async function saveServices(services: Service[]): Promise<boolean> {
 export async function getCombos(): Promise<Combo[]> {
   await ensureDb();
   try {
-    const result = await client.execute("SELECT * FROM combos");
-    return result.rows.map(row => ({
+    const combosResult = await client.execute("SELECT * FROM combos");
+    const comboServicesResult = await client.execute("SELECT * FROM combo_services");
+
+    const servicesByCombo: Record<string, string[]> = {};
+    for (const row of comboServicesResult.rows) {
+      const cId = row.combo_id as string;
+      if (!servicesByCombo[cId]) servicesByCombo[cId] = [];
+      servicesByCombo[cId].push(row.service_id as string);
+    }
+
+    return combosResult.rows.map(row => ({
+      id: row.id as string,
       name: row.name as string,
       price: row.price as string,
-      services: JSON.parse(row.services as string),
+      services: servicesByCombo[row.id as string] || [],
       description: row.description as string || undefined
     }));
   } catch (err) {
@@ -390,11 +415,18 @@ export async function saveCombos(combos: Combo[]): Promise<boolean> {
     const tx = await client.transaction("write");
     try {
       await tx.execute("DELETE FROM combos");
+      await tx.execute("DELETE FROM combo_services");
       for (const c of combos) {
         await tx.execute({
-          sql: "INSERT INTO combos (name, price, services, description) VALUES (?, ?, ?, ?)",
-          args: [c.name, c.price, JSON.stringify(c.services), c.description || '']
+          sql: "INSERT INTO combos (id, name, price, description) VALUES (?, ?, ?, ?)",
+          args: [c.id, c.name, c.price, c.description || '']
         });
+        for (const sId of c.services) {
+          await tx.execute({
+            sql: "INSERT INTO combo_services (id, combo_id, service_id) VALUES (?, ?, ?)",
+            args: [crypto.randomUUID(), c.id, sId]
+          });
+        }
       }
       await tx.commit();
       return true;

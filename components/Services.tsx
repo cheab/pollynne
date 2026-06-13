@@ -68,6 +68,7 @@ export const services = [
 
 interface ServicesProps {
   services: {
+    id: string
     icon: string
     name: string
     description: string
@@ -75,6 +76,7 @@ interface ServicesProps {
     duration: string
   }[]
   combos: {
+    id: string
     name: string
     price: string
     services: string[]
@@ -114,7 +116,7 @@ export default function Services({ services: dbServices, combos: dbCombos }: Ser
                     {combo.name}
                   </h4>
                   <p className="text-gray text-sm mb-4 leading-relaxed">
-                    {combo.description || combo.services.join(' + ')}
+                    {combo.description || combo.services.map(id => dbServices.find(s => s.id === id)?.name || id).join(' + ')}
                   </p>
                 </div>
                 <p className="font-display font-bold text-2xl text-dark mt-2">{combo.price}</p>
