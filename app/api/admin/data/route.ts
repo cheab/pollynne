@@ -13,6 +13,8 @@ import {
   saveHeroPhotos
 } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 async function isAuthenticated() {
   const cookieStore = await cookies()
   const session = cookieStore.get('admin_session')
